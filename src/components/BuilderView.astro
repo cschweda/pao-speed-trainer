@@ -1,4 +1,93 @@
-<section class="view" :class="{ active: $store.ui.view === 'builder' }" id="view-builder">
+<section class="view" :class="{ active: $store.ui.view === 'builder' }" id="view-builder" x-data="builder()">
   <h2 class="font-disp text-[26px] mt-7 mb-1.5">Encoding Builder</h2>
-  <!-- Filled in Task 7 -->
+  <p class="text-muted text-[14px] mb-[22px] leading-[1.5]">
+    Your own images beat any preset. Suit = category. Edit freely; overwrite anything that doesn't stick.
+  </p>
+
+  <div class="flex gap-2.5 flex-wrap items-stretch mb-5">
+    <div class="flex items-center gap-[11px] bg-surface border border-line rounded-[11px] px-[15px] py-2.5 flex-1 min-w-[185px]">
+      <span class="text-[30px] leading-none text-cardred">♥</span>
+      <div><b class="font-mono text-[13px] font-semibold block">Hearts</b><i class="not-italic text-[12px] text-muted block mt-0.5">Musicians / pop icons</i></div>
+    </div>
+    <div class="flex items-center gap-[11px] bg-surface border border-line rounded-[11px] px-[15px] py-2.5 flex-1 min-w-[185px]">
+      <span class="text-[30px] leading-none text-ink">♠</span>
+      <div><b class="font-mono text-[13px] font-semibold block">Spades</b><i class="not-italic text-[12px] text-muted block mt-0.5">Action heroes / tough guys</i></div>
+    </div>
+    <div class="flex items-center gap-[11px] bg-surface border border-line rounded-[11px] px-[15px] py-2.5 flex-1 min-w-[185px]">
+      <span class="text-[30px] leading-none text-cardred">♦</span>
+      <div><b class="font-mono text-[13px] font-semibold block">Diamonds</b><i class="not-italic text-[12px] text-muted block mt-0.5">TV & movie characters</i></div>
+    </div>
+    <div class="flex items-center gap-[11px] bg-surface border border-line rounded-[11px] px-[15px] py-2.5 flex-1 min-w-[185px]">
+      <span class="text-[30px] leading-none text-ink">♣</span>
+      <div><b class="font-mono text-[13px] font-semibold block">Clubs</b><i class="not-italic text-[12px] text-muted block mt-0.5">Cartoons / toys / games</i></div>
+    </div>
+    <div class="basis-full font-mono text-[11px] text-dim pt-0.5 px-0.5">
+      Rank ≈ icon wattage (Ace = biggest). Loose by design — re-rank by whatever recalls fastest for you.
+    </div>
+  </div>
+
+  <div class="flex items-center gap-3.5 mb-[18px]">
+    <div class="flex-1 h-2.5 bg-surface2 rounded-[99px] overflow-hidden max-w-[360px]">
+      <div
+        id="compfill"
+        class="h-full bg-[linear-gradient(90deg,var(--color-accent),var(--color-accent2))] transition-all duration-[400ms]"
+        :style="`width:${$store.deck.assigned / 52 * 100}%`"
+      ></div>
+    </div>
+    <span
+      id="compText"
+      class="font-mono text-[12px] text-muted bg-surface px-3 py-1.5 rounded-[99px] border border-line"
+      x-text="`${$store.deck.assigned}/52`"
+    ></span>
+    <button
+      id="seedBtn"
+      @click="seed()"
+      class="font-mono text-[13px] bg-surface text-ink border border-line px-3.5 py-[9px] rounded-[9px] cursor-pointer hover:border-accent"
+    >Reset to GenX defaults</button>
+    <button
+      id="clearBtn"
+      @click="clear()"
+      class="font-mono text-[13px] bg-transparent text-ink border border-line px-3.5 py-[9px] rounded-[9px] cursor-pointer hover:border-accent"
+    >Clear all</button>
+  </div>
+
+  <div class="grid gap-3 grid-cols-[repeat(auto-fill,minmax(310px,1fr))]" id="builderGrid">
+    <template x-for="card in cards" :key="card.id">
+      <div
+        class="bg-surface border border-line rounded-xl p-3.5 flex gap-3 items-start"
+        :class="{ 'border-[rgba(57,217,138,.4)]': card.person && card.action && card.object }"
+      >
+        <div class="w-[54px] shrink-0" x-html="mini(card)"></div>
+        <div class="flex-1 flex flex-col gap-[7px]">
+          <div class="flex items-center gap-[7px]">
+            <label class="font-mono text-[10px] text-dim w-3.5">P</label>
+            <input
+              class="flex-1 bg-surface2 border border-line text-ink font-body text-[13px] px-[9px] py-[7px] rounded-[7px] focus:outline-none focus:border-accent"
+              x-model="card.person"
+              @change="save(card, 'person')"
+              placeholder="Person"
+            />
+          </div>
+          <div class="flex items-center gap-[7px]">
+            <label class="font-mono text-[10px] text-dim w-3.5">A</label>
+            <input
+              class="flex-1 bg-surface2 border border-line text-ink font-body text-[13px] px-[9px] py-[7px] rounded-[7px] focus:outline-none focus:border-accent"
+              x-model="card.action"
+              @change="save(card, 'action')"
+              placeholder="Action"
+            />
+          </div>
+          <div class="flex items-center gap-[7px]">
+            <label class="font-mono text-[10px] text-dim w-3.5">O</label>
+            <input
+              class="flex-1 bg-surface2 border border-line text-ink font-body text-[13px] px-[9px] py-[7px] rounded-[7px] focus:outline-none focus:border-accent"
+              x-model="card.object"
+              @change="save(card, 'object')"
+              placeholder="Object"
+            />
+          </div>
+        </div>
+      </div>
+    </template>
+  </div>
 </section>
