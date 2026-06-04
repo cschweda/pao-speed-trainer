@@ -1,5 +1,6 @@
 import type { Alpine } from 'alpinejs';
 import { DB, loadCards, applySeed, assignedCount } from './lib/db';
+import * as drill from './lib/drill';
 
 export default (Alpine: Alpine) => {
   // ---- Stores ----
@@ -47,5 +48,7 @@ export default (Alpine: Alpine) => {
     const deck = Alpine.store('deck') as { ready: boolean; refresh(): void };
     deck.ready = true;
     deck.refresh();
+    // Wire the vanilla drill engine now that the DOM and stores are ready.
+    drill.init();
   })();
 };

@@ -1,4 +1,87 @@
 <section class="view" :class="{ active: $store.ui.view === 'drill' }" id="view-drill">
   <h2 class="font-disp text-[26px] mt-7 mb-1.5">Speed Drill</h2>
-  <!-- Filled in Task 6 -->
+  <p class="text-muted text-[14px] mb-[22px] leading-[1.5]">
+    Recall the asked facet silently. <b>Space</b> to reveal. <b>1</b> instant · <b>2</b> slow · <b>3</b> missed. Auto-advances.
+  </p>
+
+  <div class="flex flex-wrap items-center gap-2.5 mb-[18px]">
+    <select
+      id="mode"
+      class="font-mono text-[13px] bg-surface text-ink border border-line px-3.5 py-[9px] rounded-[9px] cursor-pointer"
+    >
+      <option value="mixed">Mixed facet</option>
+      <option value="person">Person only</option>
+      <option value="action">Action only</option>
+      <option value="object">Object only</option>
+    </select>
+    <select
+      id="suitFilter"
+      class="font-mono text-[13px] bg-surface text-ink border border-line px-3.5 py-[9px] rounded-[9px] cursor-pointer"
+    >
+      <option value="all">All suits</option>
+      <option value="H">♥ Hearts (musicians)</option>
+      <option value="S">♠ Spades (action heroes)</option>
+      <option value="D">♦ Diamonds (TV/movie)</option>
+      <option value="C">♣ Clubs (cartoons/toys)</option>
+    </select>
+    <button
+      id="startBtn"
+      class="font-mono text-[13px] bg-accent text-bg border border-accent font-semibold px-3.5 py-[9px] rounded-[9px] cursor-pointer hover:border-accent"
+    >Start session</button>
+    <button
+      id="endBtn"
+      style="display:none"
+      class="font-mono text-[13px] bg-transparent text-ink border border-line px-3.5 py-[9px] rounded-[9px] cursor-pointer hover:border-accent"
+    >End</button>
+    <span
+      id="assignWarn"
+      class="font-mono text-[12px] text-muted bg-surface px-3 py-1.5 rounded-[99px] border border-line"
+      x-text="$store.deck.assignText"
+    ></span>
+  </div>
+
+  <div id="drillStage" style="display:none" class="flex flex-col items-center gap-[18px] mt-2.5">
+    <div
+      id="facetAsk"
+      class="font-mono text-[15px] tracking-[3px] uppercase text-accent border border-line px-[18px] py-[7px] rounded-[999px] bg-surface"
+    >PERSON?</div>
+
+    <div class="cardbox w-[200px] min-[561px]:w-[240px] max-w-[70vw]">
+      <div class="flip" id="flip">
+        <div class="face front" id="cardFront"></div>
+        <div class="face back" id="cardBack"></div>
+      </div>
+    </div>
+
+    <div class="w-[200px] min-[561px]:w-[240px] max-w-[70vw] h-1.5 bg-surface2 rounded-[99px] overflow-hidden">
+      <div
+        id="deadbar"
+        class="h-full w-full rounded-[99px] origin-left bg-[linear-gradient(90deg,var(--color-accent2),var(--color-accent))]"
+      ></div>
+    </div>
+
+    <div id="targetLabel" class="font-mono text-[12px] text-dim">target —</div>
+
+    <div id="revealPanel" class="min-h-[64px] text-center">
+      <div class="font-mono text-[12px] text-dim text-center">— recall, then press <b>Space</b> —</div>
+    </div>
+
+    <div id="gradebar" style="display:none" class="flex gap-2.5 justify-center flex-wrap">
+      <button
+        data-g="1"
+        class="font-mono text-[13px] px-[18px] py-3 rounded-[10px] border border-instant bg-surface text-ink cursor-pointer min-w-[96px] min-[561px]:min-w-[120px] transition hover:-translate-y-px hover:bg-[rgba(57,217,138,.12)]"
+      ><b class="block text-[11px] text-dim mb-[3px]">1</b>INSTANT</button>
+      <button
+        data-g="2"
+        class="font-mono text-[13px] px-[18px] py-3 rounded-[10px] border border-slow bg-surface text-ink cursor-pointer min-w-[96px] min-[561px]:min-w-[120px] transition hover:-translate-y-px hover:bg-[rgba(245,166,35,.12)]"
+      ><b class="block text-[11px] text-dim mb-[3px]">2</b>GOT IT (SLOW)</button>
+      <button
+        data-g="3"
+        class="font-mono text-[13px] px-[18px] py-3 rounded-[10px] border border-miss bg-surface text-ink cursor-pointer min-w-[96px] min-[561px]:min-w-[120px] transition hover:-translate-y-px hover:bg-[rgba(224,65,75,.12)]"
+      ><b class="block text-[11px] text-dim mb-[3px]">3</b>MISSED</button>
+    </div>
+
+    <div id="latReadout" class="font-mono text-[13px] text-muted"></div>
+    <div id="sessionbar" class="flex gap-[18px] flex-wrap font-mono text-[13px] text-muted mt-3.5 justify-center"></div>
+  </div>
 </section>
