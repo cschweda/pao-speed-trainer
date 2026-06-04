@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>PAO Speed Trainer</title>
+<style>
+:root{
+  --bg:#0e0f13; --surface:#181a21; --surface2:#21242e; --line:#2c3040;
+  --ink:#f4f5f7; --muted:#9aa0ad; --dim:#6b7280;
+  --accent:#ffb000; --accent2:#39d98a; --red:#e0414b; --slow:#f5a623; --miss:#e0414b;
+  --instant:#39d98a; --card-red:#d11f2d; --card-black:#15171c;
+  --mono:'IBM Plex Mono',ui-monospace,'SF Mono',Menlo,monospace;
+  --disp:'Archivo Black','Arial Black',sans-serif;
+  --body:'Inter',-apple-system,system-ui,sans-serif;
+}
+@import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);overflow-x:hidden;
+  background-image:radial-gradient(circle at 20% -10%,rgba(255,176,0,.06),transparent 40%),radial-gradient(circle at 90% 110%,rgba(57,217,138,.05),transparent 40%);}
+.wrap{max-width:1100px;margin:0 auto;padding:0 16px 80px}
+header{display:flex;align-items:center;gap:14px;padding:18px 16px;position:sticky;top:0;z-index:50;
+  background:rgba(14,15,19,.82);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.logo{font-family:var(--disp);font-size:18px;letter-spacing:.5px}
+.logo span{color:var(--accent)}
+nav{display:flex;gap:4px;margin-left:auto;flex-wrap:wrap}
+nav button{font-family:var(--mono);font-size:13px;color:var(--muted);background:transparent;border:1px solid transparent;
+  padding:8px 14px;border-radius:8px;cursor:pointer;transition:.15s}
+nav button:hover{color:var(--ink);background:var(--surface)}
+nav button.active{color:var(--bg);background:var(--accent);font-weight:600}
+.view{display:none;animation:fade .3s ease}
+.view.active{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+h2{font-family:var(--disp);font-size:26px;margin:28px 0 6px}
+.sub{color:var(--muted);font-size:14px;margin-bottom:22px;line-height:1.5}
+
+/* ---- CARD SVG ---- */
+.cardbox{perspective:1200px}
+.card-svg{display:block;width:100%;height:auto}
+.flip{transition:transform .42s cubic-bezier(.2,.8,.3,1);transform-style:preserve-3d;position:relative}
+.flip.flipped{transform:rotateY(180deg)}
+.face{backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.face.back{position:absolute;inset:0;transform:rotateY(180deg)}
+
+/* ---- DRILL ---- */
+.drill-stage{display:flex;flex-direction:column;align-items:center;gap:18px;margin-top:10px}
+.facet-ask{font-family:var(--mono);font-size:15px;letter-spacing:3px;text-transform:uppercase;color:var(--accent);
+  border:1px solid var(--line);padding:7px 18px;border-radius:999px;background:var(--surface)}
+.cardstage{width:240px;max-width:70vw}
+.deadbar-wrap{width:240px;max-width:70vw;height:6px;background:var(--surface2);border-radius:99px;overflow:hidden}
+.deadbar{height:100%;width:100%;background:linear-gradient(90deg,var(--accent2),var(--accent));border-radius:99px;transform-origin:left}
+.target-label{font-family:var(--mono);font-size:12px;color:var(--dim)}
+.reveal-panel{min-height:64px;text-align:center}
+.reveal-answer{font-family:var(--disp);font-size:30px;line-height:1.1}
+.reveal-context{font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:6px}
+.hint{font-family:var(--mono);font-size:12px;color:var(--dim);text-align:center}
+.gradebar{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.gradebtn{font-family:var(--mono);font-size:13px;padding:12px 18px;border-radius:10px;border:1px solid var(--line);
+  background:var(--surface);color:var(--ink);cursor:pointer;min-width:120px;transition:.12s}
+.gradebtn:hover{transform:translateY(-1px)}
+.gradebtn b{display:block;font-size:11px;color:var(--dim);margin-bottom:3px}
+.gradebtn.g1{border-color:var(--instant)} .gradebtn.g1:hover{background:rgba(57,217,138,.12)}
+.gradebtn.g2{border-color:var(--slow)} .gradebtn.g2:hover{background:rgba(245,166,35,.12)}
+.gradebtn.g3{border-color:var(--miss)} .gradebtn.g3:hover{background:rgba(224,65,75,.12)}
+.lat-readout{font-family:var(--mono);font-size:13px;color:var(--muted)}
+.lat-readout b{color:var(--accent2)}
+
+/* ---- controls ---- */
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:18px}
+select,.btn{font-family:var(--mono);font-size:13px;background:var(--surface);color:var(--ink);
+  border:1px solid var(--line);padding:9px 14px;border-radius:9px;cursor:pointer}
+.btn.primary{background:var(--accent);color:var(--bg);border-color:var(--accent);font-weight:600}
+.btn.ghost{background:transparent}
+.btn:hover{border-color:var(--accent)}
+.pill{font-family:var(--mono);font-size:12px;color:var(--muted);background:var(--surface);padding:6px 12px;border-radius:99px;border:1px solid var(--line)}
+.sessionbar{display:flex;gap:18px;flex-wrap:wrap;font-family:var(--mono);font-size:13px;color:var(--muted);margin-top:14px;justify-content:center}
+.sessionbar b{color:var(--ink)}
+
+/* ---- builder ---- */
+.completion{display:flex;align-items:center;gap:14px;margin-bottom:18px}
+.suitlegend{display:flex;gap:10px;flex-wrap:wrap;align-items:stretch;margin-bottom:20px}
+.sl-item{display:flex;align-items:center;gap:11px;background:var(--surface);border:1px solid var(--line);
+  border-radius:11px;padding:10px 15px;flex:1;min-width:185px}
+.sl-sym{font-size:30px;line-height:1}
+.sl-red .sl-sym{color:var(--card-red)} .sl-black .sl-sym{color:var(--ink)}
+.sl-item b{font-family:var(--mono);font-size:13px;font-weight:600;display:block}
+.sl-item i{font-style:normal;font-size:12px;color:var(--muted);display:block;margin-top:2px}
+.sl-note{flex-basis:100%;font-family:var(--mono);font-size:11px;color:var(--dim);padding:2px 2px 0}
+.compmeter{flex:1;height:10px;background:var(--surface2);border-radius:99px;overflow:hidden;max-width:360px}
+.compfill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:.4s}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:12px}
+.editcard{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;gap:12px;align-items:flex-start}
+.editcard.done{border-color:rgba(57,217,138,.4)}
+.editcard .mini{width:54px;flex-shrink:0}
+.fields{flex:1;display:flex;flex-direction:column;gap:7px}
+.fld{display:flex;align-items:center;gap:7px}
+.fld label{font-family:var(--mono);font-size:10px;color:var(--dim);width:14px}
+.fld input{flex:1;background:var(--surface2);border:1px solid var(--line);color:var(--ink);font-family:var(--body);
+  font-size:13px;padding:7px 9px;border-radius:7px}
+.fld input:focus{outline:none;border-color:var(--accent)}
+
+/* ---- dashboard ---- */
+.statgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:22px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px}
+.stat .v{font-family:var(--disp);font-size:30px}
+.stat .l{font-family:var(--mono);font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:4px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px;margin-bottom:18px}
+.panel h3{font-family:var(--mono);font-size:13px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:14px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--line);font-family:var(--mono)}
+th{color:var(--dim);font-size:11px;text-transform:uppercase;letter-spacing:.5px}
+.bar-cell{position:relative}
+.bar-cell .b{position:absolute;left:0;top:50%;transform:translateY(-50%);height:60%;background:rgba(224,65,75,.25);border-radius:4px}
+.bar-cell span{position:relative}
+.empty{color:var(--dim);font-family:var(--mono);font-size:13px;text-align:center;padding:30px}
+svg.trend{width:100%;height:160px;display:block}
+.legend{display:flex;gap:16px;font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:8px;flex-wrap:wrap}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:middle}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--surface2);border:1px solid var(--line);
+  color:var(--ink);font-family:var(--mono);font-size:13px;padding:10px 18px;border-radius:10px;opacity:0;transition:.25s;pointer-events:none;z-index:100}
+.toast.show{opacity:1}
+.guide{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;align-items:start}
+.g-card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px 22px}
+.g-card h3{font-family:var(--mono);font-size:13px;text-transform:uppercase;letter-spacing:1px;color:var(--accent);margin-bottom:12px}
+.g-card p{font-size:14.5px;line-height:1.65;color:var(--ink)}
+.g-card i{color:var(--muted);font-style:italic}
+.g-card b{color:var(--ink)}
+.g-card ol,.g-card ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:11px}
+.g-card li{font-size:14.5px;line-height:1.6}
+.g-card ul li::marker{color:var(--accent2)}
+.g-card ol li::marker{color:var(--accent);font-family:var(--mono);font-weight:600}
+.g-tldr{grid-column:1/-1;background:linear-gradient(135deg,rgba(255,176,0,.1),rgba(57,217,138,.06));border-color:rgba(255,176,0,.35)}
+.g-tldr h3{color:var(--accent)}
+.g-tldr p{font-size:16px;line-height:1.7}
+.g-rules{grid-column:1/-1}
+.g-cta{grid-column:1/-1;text-align:center;background:linear-gradient(135deg,rgba(57,217,138,.1),rgba(255,176,0,.05));border-color:rgba(57,217,138,.35)}
+.g-cta .btn{margin-top:14px}
+.g-launch{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}
+.g-launch-label{font-family:var(--mono);font-size:12px;color:var(--muted);width:100%}
+.g-step-btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:9px}
+.g-cta-sub{margin-top:12px}
+.chip{font-family:var(--mono);font-size:12.5px;background:var(--surface2);color:var(--ink);border:1px solid var(--line);
+  padding:7px 13px;border-radius:99px;cursor:pointer;transition:.13s;white-space:nowrap}
+.chip:hover{border-color:var(--accent);transform:translateY(-1px)}
+.chip-go{border-color:rgba(57,217,138,.4);color:var(--instant)}
+.chip-go:hover{background:rgba(57,217,138,.12);border-color:var(--instant)}
+.g-card .btn.primary{margin-top:14px}
+.g-path{grid-column:1/-1}
+.g-path-intro{margin-bottom:18px}
+.g-phase{border-left:2px solid var(--line);padding:2px 0 2px 16px;margin-bottom:20px}
+.g-phase-final{border-left-color:var(--accent2)}
+.g-phase-h{font-family:var(--mono);font-size:14px;font-weight:600;color:var(--ink);margin-bottom:12px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.g-phase-tag{font-size:10px;letter-spacing:1px;background:var(--accent);color:var(--bg);padding:3px 8px;border-radius:5px}
+.g-phase-final .g-phase-tag{background:var(--accent2)}
+.g-drills{list-style:none;padding:0!important;margin:0;display:flex;flex-direction:column;gap:12px}
+.g-drills li{display:flex;gap:12px;align-items:flex-start;font-size:14px;line-height:1.55}
+.g-dn{flex-shrink:0;font-family:var(--mono);font-size:11px;font-weight:600;color:var(--accent);background:var(--surface2);
+  border:1px solid var(--line);border-radius:6px;padding:5px 8px;min-width:62px;text-align:center;margin-top:1px}
+.g-drills li>div{flex:1}
+.g-drills .chip{margin-top:7px;margin-right:6px}
+.g-phase-note{font-family:var(--mono);font-size:11px;color:var(--dim);margin-top:12px;line-height:1.5}
+@media(max-width:560px){.cardstage{width:200px}.deadbar-wrap{width:200px}.gradebtn{min-width:96px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">PAO<span>·</span>SPEED</div>
+  <nav>
+    <button data-view="drill" class="active">DRILL</button>
+    <button data-view="builder">ENCODE</button>
+    <button data-view="dash">PROGRESS</button>
+    <button data-view="guide">START HERE</button>
+  </nav>
+</header>
+<div class="wrap">
+  <!-- DRILL -->
+  <section class="view active" id="view-drill">
+    <h2>Speed Drill</h2>
+    <p class="sub">Recall the asked facet silently. <b>Space</b> to reveal. <b>1</b> instant · <b>2</b> slow · <b>3</b> missed. Auto-advances.</p>
+    <div class="controls">
+      <select id="mode">
+        <option value="mixed">Mixed facet</option>
+        <option value="person">Person only</option>
+        <option value="action">Action only</option>
+        <option value="object">Object only</option>
+      </select>
+      <select id="suitFilter">
+        <option value="all">All suits</option>
+        <option value="H">♥ Hearts (musicians)</option>
+        <option value="S">♠ Spades (action heroes)</option>
+        <option value="D">♦ Diamonds (TV/movie)</option>
+        <option value="C">♣ Clubs (cartoons/toys)</option>
+      </select>
+      <button class="btn primary" id="startBtn">Start session</button>
+      <button class="btn ghost" id="endBtn" style="display:none">End</button>
+      <span class="pill" id="assignWarn"></span>
+    </div>
+    <div class="drill-stage" id="drillStage" style="display:none">
+      <div class="facet-ask" id="facetAsk">PERSON?</div>
+      <div class="cardstage cardbox"><div class="flip" id="flip">
+        <div class="face front" id="cardFront"></div>
+        <div class="face back" id="cardBack"></div>
+      </div></div>
+      <div class="deadbar-wrap"><div class="deadbar" id="deadbar"></div></div>
+      <div class="target-label" id="targetLabel">target —</div>
+      <div class="reveal-panel" id="revealPanel"><div class="hint" id="hint">— recall, then press <b>Space</b> —</div></div>
+      <div class="gradebar" id="gradebar" style="display:none">
+        <button class="gradebtn g1" data-g="1"><b>1</b>INSTANT</button>
+        <button class="gradebtn g2" data-g="2"><b>2</b>GOT IT (SLOW)</button>
+        <button class="gradebtn g3" data-g="3"><b>3</b>MISSED</button>
+      </div>
+      <div class="lat-readout" id="latReadout"></div>
+      <div class="sessionbar" id="sessionbar"></div>
+    </div>
+  </section>
+
+  <!-- BUILDER -->
+  <section class="view" id="view-builder">
+    <h2>Encoding Builder</h2>
+    <p class="sub">Your own images beat any preset. Suit = category. Edit freely; overwrite anything that doesn't stick.</p>
+    <div class="suitlegend">
+      <div class="sl-item sl-red"><span class="sl-sym">♥</span><div><b>Hearts</b><i>Musicians / pop icons</i></div></div>
+      <div class="sl-item sl-black"><span class="sl-sym">♠</span><div><b>Spades</b><i>Action heroes / tough guys</i></div></div>
+      <div class="sl-item sl-red"><span class="sl-sym">♦</span><div><b>Diamonds</b><i>TV &amp; movie characters</i></div></div>
+      <div class="sl-item sl-black"><span class="sl-sym">♣</span><div><b>Clubs</b><i>Cartoons / toys / games</i></div></div>
+      <div class="sl-note">Rank ≈ icon wattage (Ace = biggest). Loose by design — re-rank by whatever recalls fastest for you.</div>
+    </div>
+    <div class="completion">
+      <div class="compmeter"><div class="compfill" id="compfill"></div></div>
+      <span class="pill" id="compText">0/52</span>
+      <button class="btn" id="seedBtn">Reset to GenX defaults</button>
+      <button class="btn ghost" id="clearBtn">Clear all</button>
+    </div>
+    <div class="grid" id="builderGrid"></div>
+  </section>
+
+  <!-- DASH -->
+  <section class="view" id="view-dash">
+    <h2>Progress</h2>
+    <p class="sub">Watch the curve bend down. Latency is render→reveal keypress only.</p>
+    <div class="statgrid" id="statgrid"></div>
+    <div class="panel"><h3>Latency trend (per session median)</h3><svg class="trend" id="trendSvg" viewBox="0 0 600 160" preserveAspectRatio="none"></svg>
+      <div class="legend"><span><i style="background:#39d98a"></i>median</span><span><i style="background:#ffb000"></i>p75</span><span><i style="background:#e0414b"></i>p90</span></div></div>
+    <div class="panel"><h3>Slowest (card · facet) — where your seconds go</h3><div id="slowList"></div></div>
+    <div class="panel"><h3>Per-facet latency (p75, ms)</h3><div id="facetStats"></div></div>
+  </section>
+
+  <!-- GUIDE -->
+  <section class="view" id="view-guide">
+    <h2>Start Here</h2>
+    <p class="sub">Starting from zero? Read this, then close it and drill. The reps are the teacher — everything here just makes each rep land harder.</p>
+
+    <div class="guide">
+      <div class="g-card g-tldr">
+        <h3>The one-line version</h3>
+        <p><b>Hearts → Diamonds → Spades → Clubs</b>, one suit at a time. Within each suit walk <b>Person → Action → Object → Mixed</b>. 10–15 min daily, honest grading. Don't add a suit until the last one's "slowest cards" list is flat and low.</p>
+        <div class="g-launch">
+          <span class="g-launch-label">Jump straight in:</span>
+          <button class="chip chip-go" data-go data-suit="H" data-mode="person" data-autostart="1">▶ Hearts · Person</button>
+          <button class="chip chip-go" data-go data-suit="D" data-mode="person" data-autostart="1">▶ Diamonds · Person</button>
+          <button class="chip chip-go" data-go data-suit="S" data-mode="person" data-autostart="1">▶ Spades · Person</button>
+          <button class="chip chip-go" data-go data-suit="C" data-mode="person" data-autostart="1">▶ Clubs · Person</button>
+        </div>
+      </div>
+
+      <div class="g-card">
+        <h3>Why Hearts first (not Diamonds)</h3>
+        <p>Lead with your <i>strongest</i> suit, not the first one. As a DJ from '84–'90, the musicians in Hearts are already in your long-term memory — you're not learning "who is Prince," only "Prince lives at King of Hearts." Lightest possible first lift, and your first session becomes a <b>win</b> instead of a slog. That's what builds the daily habit.</p>
+        <button class="btn primary" data-go data-suit="H" data-mode="person" data-autostart="1">▶ Start Hearts · Person now</button>
+      </div>
+
+      <div class="g-card">
+        <h3>Week one, concretely</h3>
+        <ol>
+          <li><b>Sit with the 13 Hearts in Encode for ~10 min.</b> Don't memorize — just react. Any default that makes you hesitate or feel "meh," rewrite it now while it's cheap. Your DJ instinct for who's iconic beats my sorting. Make those 13 feel like <i>yours</i>.
+            <div class="g-step-btns"><button class="chip" id="guideEncodeBtn">✎ Open Encode</button></div></li>
+          <li><b>Drill: Hearts filter + Person only.</b> Person first — the face is the anchor the other two facets hang off. You'll be slow and miss some. That's the rep working, not failure. ~8–10 min, then stop while it's still fresh.
+            <div class="g-step-btns"><button class="chip chip-go" data-go data-suit="H" data-mode="person" data-autostart="1">▶ Hearts · Person</button></div></li>
+          <li><b>Next day, same thing.</b> It'll already be faster — that overnight jump is consolidation. Feeling it is what hooks you.</li>
+          <li><b>When Person feels easy, switch to Action only, then Object only</b> — a day or two each.
+            <div class="g-step-btns"><button class="chip chip-go" data-go data-suit="H" data-mode="action" data-autostart="1">▶ Hearts · Action</button><button class="chip chip-go" data-go data-suit="H" data-mode="object" data-autostart="1">▶ Hearts · Object</button></div></li>
+          <li><b>Then Mixed facet, still Hearts</b> — all three facets, random order. When that runs fast, Hearts is done. Move to Diamonds, repeat the whole arc.
+            <div class="g-step-btns"><button class="chip chip-go" data-go data-suit="H" data-mode="mixed" data-autostart="1">▶ Hearts · Mixed</button><button class="chip chip-go" data-go data-suit="D" data-mode="person" data-autostart="1">▶ Begin Diamonds →</button></div></li>
+        </ol>
+      </div>
+
+      <div class="g-card g-path">
+        <h3>The pathway to mastery — drill by drill</h3>
+        <p class="g-path-intro">Specific sessions, in order. Each is ~10–15 min. One per day is ideal; never cram two facets of a fresh suit into one sitting. The day numbers are a guide — let the dashboard, not the calendar, tell you when a stage is "done" (slowest-cards list flat and low, p75 falling). Click any session to launch it preset.</p>
+
+        <div class="g-phase">
+          <div class="g-phase-h"><span class="g-phase-tag">PHASE 1</span> Learn Hearts &nbsp;·&nbsp; ~days 1–6</div>
+          <ol class="g-drills">
+            <li><span class="g-dn">Drill 1</span><div><b>Hearts · Person.</b> Your first session. Expect slow, messy reps and a few misses — that's the trace forming. Grade honestly. <button class="chip chip-go" data-go data-suit="H" data-mode="person" data-autostart="1">▶ Launch</button></div></li>
+            <li><span class="g-dn">Drill 2</span><div><b>Hearts · Person again</b> (next day). Notice the overnight speed-up. Repeat daily until most Hearts persons feel automatic (dashboard: Person p75 under ~1.5s). <button class="chip chip-go" data-go data-suit="H" data-mode="person" data-autostart="1">▶ Launch</button></div></li>
+            <li><span class="g-dn">Drill 3</span><div><b>Hearts · Action.</b> Now the verbs. These lean on the person you just learned. <button class="chip chip-go" data-go data-suit="H" data-mode="action" data-autostart="1">▶ Launch</button></div></li>
+            <li><span class="g-dn">Drill 4</span><div><b>Hearts · Object.</b> The props. Usually the easiest facet because objects are concrete. <button class="chip chip-go" data-go data-suit="H" data-mode="object" data-autostart="1">▶ Launch</button></div></li>
+            <li><span class="g-dn">Drill 5</span><div><b>Hearts · Mixed.</b> All three facets, random. This is the real test of the suit. Stay here daily until p75 is low and flat. <button class="chip chip-go" data-go data-suit="H" data-mode="mixed" data-autostart="1">▶ Launch</button></div></li>
+          </ol>
+        </div>
+
+        <div class="g-phase">
+          <div class="g-phase-h"><span class="g-phase-tag">PHASE 2</span> Learn Diamonds &nbsp;·&nbsp; ~days 7–11</div>
+          <ol class="g-drills">
+            <li><span class="g-dn">Drill 6</span><div><b>Diamonds · Person.</b> Same arc as Hearts. TV/movie faces. <button class="chip chip-go" data-go data-suit="D" data-mode="person" data-autostart="1">▶ Launch</button></div></li>
+            <li><span class="g-dn">Drill 7</span><div><b>Diamonds · Action</b>, then <b>· Object</b> on following days. <button class="chip chip-go" data-go data-suit="D" data-mode="action" data-autostart="1">▶ Action</button> <button class="chip chip-go" data-go data-suit="D" data-mode="object" data-autostart="1">▶ Object</button></div></li>
+            <li><span class="g-dn">Drill 8</span><div><b>Diamonds · Mixed</b> until flat. <button class="chip chip-go" data-go data-suit="D" data-mode="mixed" data-autostart="1">▶ Launch</button></div></li>
+            <li><span class="g-dn">Drill 9</span><div><b>Hearts + Diamonds · Mixed</b> — first cross-suit test. Set suit to <i>All suits</i> for now; the two-suit blend surfaces any bleed between them. Drill until clean. <button class="chip chip-go" data-go data-suit="all" data-mode="mixed" data-autostart="1">▶ Launch (all suits)</button></div></li>
+          </ol>
+          <p class="g-phase-note">Note: the suit filter only does single-suit or all-suits, so "two-suit" sessions use the All-suits setting. While you've only encoded Hearts + Diamonds as solid, all-suits effectively drills what you know plus stretches the rest.</p>
+        </div>
+
+        <div class="g-phase">
+          <div class="g-phase-h"><span class="g-phase-tag">PHASE 3</span> Learn Spades &nbsp;·&nbsp; ~days 12–16</div>
+          <ol class="g-drills">
+            <li><span class="g-dn">Drill 10</span><div><b>Spades · Person → Action → Object</b>, one per day. Action heroes. <button class="chip chip-go" data-go data-suit="S" data-mode="person" data-autostart="1">▶ Person</button> <button class="chip chip-go" data-go data-suit="S" data-mode="action" data-autostart="1">▶ Action</button> <button class="chip chip-go" data-go data-suit="S" data-mode="object" data-autostart="1">▶ Object</button></div></li>
+            <li><span class="g-dn">Drill 11</span><div><b>Spades · Mixed</b> until flat. <button class="chip chip-go" data-go data-suit="S" data-mode="mixed" data-autostart="1">▶ Launch</button></div></li>
+          </ol>
+        </div>
+
+        <div class="g-phase">
+          <div class="g-phase-h"><span class="g-phase-tag">PHASE 4</span> Learn Clubs &nbsp;·&nbsp; ~days 17–21</div>
+          <ol class="g-drills">
+            <li><span class="g-dn">Drill 12</span><div><b>Clubs · Person → Action → Object</b>, one per day. Cartoons/toys — most exaggerated, often the fastest to learn. <button class="chip chip-go" data-go data-suit="C" data-mode="person" data-autostart="1">▶ Person</button> <button class="chip chip-go" data-go data-suit="C" data-mode="action" data-autostart="1">▶ Action</button> <button class="chip chip-go" data-go data-suit="C" data-mode="object" data-autostart="1">▶ Object</button></div></li>
+            <li><span class="g-dn">Drill 13</span><div><b>Clubs · Mixed</b> until flat. <button class="chip chip-go" data-go data-suit="C" data-mode="mixed" data-autostart="1">▶ Launch</button></div></li>
+          </ol>
+        </div>
+
+        <div class="g-phase g-phase-final">
+          <div class="g-phase-h"><span class="g-phase-tag">PHASE 5</span> Integrate all 52 &nbsp;·&nbsp; ~day 22 onward</div>
+          <ol class="g-drills">
+            <li><span class="g-dn">Drill 14</span><div><b>All suits · Person.</b> Now drill one facet across the whole deck — exposes which persons still lag once all four categories compete. <button class="chip chip-go" data-go data-suit="all" data-mode="person" data-autostart="1">▶ Launch</button></div></li>
+            <li><span class="g-dn">Drill 15</span><div><b>All suits · Action</b>, then <b>· Object.</b> <button class="chip chip-go" data-go data-suit="all" data-mode="action" data-autostart="1">▶ Action</button> <button class="chip chip-go" data-go data-suit="all" data-mode="object" data-autostart="1">▶ Object</button></div></li>
+            <li><span class="g-dn">Drill 16</span><div><b>All suits · Mixed</b> — the master drill. All 52 cards, all three facets, fully random. This is your daily driver from here on. <button class="chip chip-go" data-go data-suit="all" data-mode="mixed" data-autostart="1">▶ Launch</button></div></li>
+            <li><span class="g-dn">Daily</span><div><b>Keep running All · Mixed</b> and watch the global p75 fall. When you're reliably under ~1s per facet across the deck, your encoding reflex is built — that's the ~120s-deck capability the trainer was made for. Check the dashboard's slowest list and rewrite any persistent laggard with a more personal image. <button class="chip" id="pathDashBtn">📈 Dashboard</button></div></li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="g-card g-rules">
+        <h3>The rules that matter more than the order</h3>
+        <ul>
+          <li><b>Short and daily beats long and occasional.</b> 10–15 min every day crushes an hour once a week — the gaps between sessions are where learning sets. Don't cram a suit in one sitting.</li>
+          <li><b>Grade the 2 (SLOW) honestly.</b> "Got it after half a second of thinking" is exactly the card that costs you on a full deck. Mark it INSTANT and it graduates out and stops getting drilled. <b>Slow is your most valuable grade</b> — it keeps laggards in rotation. Honest grading lets the app route your time perfectly; flattering yourself wastes it.</li>
+          <li><b>Don't overlap half-learned suits.</b> Wait until the dashboard's "slowest cards" list looks flat and low before adding the next suit, or the associations bleed into each other.</li>
+          <li><b>Stop studying, start drilling — even when you feel unready.</b> Forcing a retrieval and failing builds the memory trace harder than re-reading the answer ten times. This is the most robust finding in all of learning science.</li>
+        </ul>
+      </div>
+
+      <div class="g-card">
+        <h3>What "done" feels like</h3>
+        <p>Early on you'll consciously assemble each card — "MJ… moonwalking… glove." That's scaffolding, and it's fine. The goal is to drill until that assembly wears away and the triplet arrives as a <b>single fused image</b>, not a story. When a card shows sub-500ms latency on the dashboard, it has made that transition. That reflex — card hits your eye, person fires before you can think — is the whole point. No tip shortcuts it; only correct reps under time pressure build it.</p>
+        <button class="chip" id="guideDashBtn">📈 See your progress</button>
+      </div>
+
+      <div class="g-card">
+        <h3>For a stubborn card</h3>
+        <p>During <i>encoding</i> only, invent any silly logical hook to get it to stick ("4 of Clubs / G.I. Joe — four-letter Joe, four-star general"). Use it for the first few exposures, then let the drill sand it away. The hook is a ladder you kick out once you're up — recall itself should never be logical, because logic is slower than reflex.</p>
+      </div>
+
+      <div class="g-card g-cta">
+        <h3>Right now</h3>
+        <p>This is the proper first session — <b>Hearts, Person only</b>. One click starts it. The first session is the only hard one to start.</p>
+        <button class="btn primary" data-go data-suit="H" data-mode="person" data-autostart="1">▶ Start my first drill</button>
+        <div class="g-cta-sub">
+          <button class="chip" data-go data-suit="all" data-mode="mixed" data-autostart="0">Or set up a custom session →</button>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+/* ====================== PAO SPEED TRAINER ======================
+   Honest-latency-first vanilla JS. No framework indirection.
+   Clock starts in rAF after prompt paint; stops as first line of keydown.
+================================================================ */
+
+const SUITS=['H','S','D','C'];
+const RANKS=['A','K','Q','J','10','9','8','7','6','5','4','3','2'];
+const SUIT_META={
+  H:{sym:'♥',color:'red',cat:'Musicians'},
+  S:{sym:'♠',color:'black',cat:'Action heroes'},
+  D:{sym:'♦',color:'red',cat:'TV / movie'},
+  C:{sym:'♣',color:'black',cat:'Cartoons / toys'},
+};
+const FACETS=['person','action','object'];
+const FACET_LABEL={person:'PERSON',action:'ACTION',object:'OBJECT'};
+
+const SEED = {
+  H:{A:["Michael Jackson","moonwalking","a sequined glove"],K:["Prince","playing a guitar solo","a purple guitar"],Q:["Madonna","vogueing","a cone bra"],J:["David Bowie","striking a pose","a lightning-bolt face"],"10":["Freddie Mercury","punching the air","a half-mic stand"],"9":["Cyndi Lauper","spinning around","neon-dyed hair"],"8":["Boy George","swaying","a big floppy hat"],"7":["Run-DMC","crossing arms","fat Adidas laces"],"6":["Annie Lennox","saluting","an orange flattop"],"5":["Axl Rose","snake-dancing","a bandana"],"4":["Phil Collins","drumming","a drum kit"],"3":["Debbie Harry","pointing","a zebra dress"],"2":["Rick Astley","finger-point dancing","a trench coat"]},
+  S:{A:["Terminator","cocking a shotgun","sunglasses"],K:["Rocky Balboa","throwing a jab","boxing gloves"],Q:["Ellen Ripley","firing a flamethrower","a power loader"],J:["Indiana Jones","cracking a whip","a fedora"],"10":["John McClane","crawling through a vent","a white tank top"],"9":["Rambo","drawing a bowstring","a headband"],"8":["Mr. T","flexing","gold chains"],"7":["Mad Max","revving an engine","a sawed-off shotgun"],"6":["Snake Plissken","sneering","an eyepatch"],"5":["Conan","raising a sword","a broadsword"],"4":["RoboCop","holstering a pistol","a visor"],"3":["Bruce Lee","throwing a kick","nunchucks"],"2":["Evel Knievel","jumping a ramp","a star helmet"]},
+  D:{A:["Ferris Bueller","lip-syncing on a float","a red Ferrari"],K:["Magnum P.I.","driving fast","a thick mustache"],Q:["Princess Leia","firing a blaster","cinnamon-bun hair"],J:["Marty McFly","riding a hoverboard","a DeLorean"],"10":["E.T.","pointing a glowing finger","a glowing fingertip"],"9":["The Fonz","thumbs-up","a leather jacket"],"8":["MacGyver","defusing a bomb","a paperclip"],"7":["Pee-wee Herman","doing a tiny dance","a red bow tie"],"6":["Hannibal Smith","lighting a cigar","a cigar"],"5":["Dr. Venkman","blasting a proton stream","a proton pack"],"4":["Daniel-san","doing the crane kick","a headband"],"3":["ALF","chomping","a furry snout"],"2":["Gizmo","singing","big mogwai ears"]},
+  C:{A:["Pac-Man","chomping","a power pellet"],K:["He-Man","raising a sword","Battle Cat"],Q:["She-Ra","lifting a sword skyward","a tiara"],J:["Optimus Prime","transforming","a truck grille"],"10":["Mario","jumping","a mushroom"],"9":["Donkey Kong","throwing a barrel","a barrel"],"8":["Smurf","painting","a white floppy hat"],"7":["Lion-O","raising the Sword of Omens","a claw shield"],"6":["Strawberry Shortcake","skipping","a striped bonnet"],"5":["Rubik's Cube","twisting","a Rubik's cube"],"4":["G.I. Joe","saluting","a bazooka"],"3":["Care Bear","beaming a tummy ray","a heart belly"],"2":["My Little Pony","prancing","a rainbow mane"]},
+};
+
+const cardId=(s,r)=>s+r;
+const allCards=()=>{const o=[];for(const s of SUITS)for(const r of RANKS)o.push({suit:s,rank:r,id:cardId(s,r)});return o;};
+
+/* ---------------- IndexedDB ---------------- */
+const DB={ _db:null,
+  open(){return new Promise((res,rej)=>{const rq=indexedDB.open('pao-speed',1);
+    rq.onupgradeneeded=e=>{const db=e.target.result;
+      if(!db.objectStoreNames.contains('cards'))db.createObjectStore('cards',{keyPath:'id'});
+      if(!db.objectStoreNames.contains('attempts')){const a=db.createObjectStore('attempts',{keyPath:'aid',autoIncrement:true});a.createIndex('byCardFacet',['card','facet']);a.createIndex('bySession','session');}
+      if(!db.objectStoreNames.contains('meta'))db.createObjectStore('meta',{keyPath:'k'});};
+    rq.onsuccess=e=>{this._db=e.target.result;res();};rq.onerror=e=>rej(e);});},
+  tx(store,mode='readonly'){return this._db.transaction(store,mode).objectStore(store);},
+  getAll(store){return new Promise((res,rej)=>{const r=this.tx(store).getAll();r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);});},
+  get(store,k){return new Promise((res,rej)=>{const r=this.tx(store).get(k);r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);});},
+  put(store,v){return new Promise((res,rej)=>{const r=this.tx(store,'readwrite').put(v);r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);});},
+  clear(store){return new Promise((res,rej)=>{const r=this.tx(store,'readwrite').clear();r.onsuccess=()=>res();r.onerror=()=>rej(r.error);});},
+};
+
+/* ---------------- State ---------------- */
+let CARDS={};   // id -> {id,suit,rank,person,action,object}
+let LEITNER={}; // "id|facet" -> {bucket, streak}
+const KEY=(id,f)=>id+'|'+f;
+
+async function loadCards(){
+  const rows=await DB.getAll('cards');
+  CARDS={};
+  for(const c of allCards()) CARDS[c.id]={...c,person:'',action:'',object:''};
+  for(const r of rows) if(CARDS[r.id]) CARDS[r.id]={...CARDS[r.id],...r};
+  const lz=await DB.get('meta','leitner'); LEITNER=lz?lz.v:{};
+}
+async function saveCard(id){const c=CARDS[id];await DB.put('cards',{id:c.id,suit:c.suit,rank:c.rank,person:c.person,action:c.action,object:c.object});}
+async function saveLeitner(){await DB.put('meta',{k:'leitner',v:LEITNER});}
+
+/* ---------------- Card SVG (minimal, sub-300ms legible) ---------------- */
+function cardSVG(suit,rank,{mini=false}={}){
+  const m=SUIT_META[suit]; const col=m.color==='red'?'var(--card-red)':'var(--card-black)';
+  const pip=m.sym;
+  const rankFont=mini?34:84, pipFont=mini?30:76, cornerFont=mini?14:30;
+  // Clean face: big rank center-left, big pip center-right; corner indices. No court art.
+  return `<svg class="card-svg" viewBox="0 0 240 336" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${rank} of ${m.cat}">
+    <rect x="3" y="3" width="234" height="330" rx="18" fill="#fbfbf7" stroke="#d9d9d2" stroke-width="2"/>
+    <g fill="${col}" font-family="var(--disp)" font-weight="900">
+      <text x="20" y="${cornerFont+18}" font-size="${cornerFont}" text-anchor="middle">${rank}</text>
+      <text x="20" y="${cornerFont+18+cornerFont*0.95}" font-size="${cornerFont}" text-anchor="middle">${pip}</text>
+      <text x="220" y="${336-18}" font-size="${cornerFont}" text-anchor="middle" transform="rotate(180 220 ${336-30})">${rank}</text>
+      <text x="220" y="${336-18-cornerFont*0.95}" font-size="${cornerFont}" text-anchor="middle" transform="rotate(180 220 ${336-30-cornerFont*0.95})">${pip}</text>
+      <text x="92" y="200" font-size="${rankFont}" text-anchor="middle" dominant-baseline="middle">${rank}</text>
+      <text x="160" y="172" font-size="${pipFont}" text-anchor="middle" dominant-baseline="middle">${pip}</text>
+    </g>
+  </svg>`;
+}
+function cardBackSVG(text,sub){
+  return `<svg class="card-svg" viewBox="0 0 240 336" xmlns="http://www.w3.org/2000/svg">
+    <rect x="3" y="3" width="234" height="330" rx="18" fill="#181a21" stroke="#2c3040" stroke-width="2"/>
+    <foreignObject x="16" y="120" width="208" height="160">
+      <div xmlns="http://www.w3.org/1999/xhtml" style="font-family:var(--disp);color:#ffb000;font-size:26px;line-height:1.1;text-align:center">${text||'—'}
+      <div style="font-family:var(--mono);font-size:12px;color:#9aa0ad;margin-top:10px;font-weight:400">${sub||''}</div></div>
+    </foreignObject>
+  </svg>`;
+}
+
+/* ---------------- Stats helpers ---------------- */
+function quantile(arr,q){if(!arr.length)return null;const s=[...arr].sort((a,b)=>a-b);const pos=(s.length-1)*q;const b=Math.floor(pos);const rest=pos-b;return s[b+1]!==undefined?s[b]+rest*(s[b+1]-s[b]):s[b];}
+
+/* ---------------- Navigation ---------------- */
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');
+  document.getElementById('view-'+b.dataset.view).classList.add('active');
+  if(b.dataset.view==='builder')renderBuilder();
+  if(b.dataset.view==='dash')renderDash();
+});
+
+/* ---------------- Builder ---------------- */
+function assignedCount(){let n=0;for(const id in CARDS){const c=CARDS[id];if(c.person&&c.action&&c.object)n++;}return n;}
+function renderBuilder(){
+  const grid=document.getElementById('builderGrid');grid.innerHTML='';
+  for(const s of SUITS)for(const r of RANKS){
+    const c=CARDS[cardId(s,r)];const done=c.person&&c.action&&c.object;
+    const el=document.createElement('div');el.className='editcard'+(done?' done':'');
+    el.innerHTML=`<div class="mini">${cardSVG(s,r,{mini:true})}</div>
+      <div class="fields">
+        <div class="fld"><label>P</label><input data-id="${c.id}" data-f="person" value="${esc(c.person)}" placeholder="Person"></div>
+        <div class="fld"><label>A</label><input data-id="${c.id}" data-f="action" value="${esc(c.action)}" placeholder="Action"></div>
+        <div class="fld"><label>O</label><input data-id="${c.id}" data-f="object" value="${esc(c.object)}" placeholder="Object"></div>
+      </div>`;
+    grid.appendChild(el);
+  }
+  grid.querySelectorAll('input').forEach(inp=>{
+    inp.onchange=async()=>{const id=inp.dataset.id,f=inp.dataset.f;CARDS[id][f]=inp.value.trim();await saveCard(id);updateCompletion();
+      inp.closest('.editcard').classList.toggle('done',CARDS[id].person&&CARDS[id].action&&CARDS[id].object);};
+  });
+  updateCompletion();
+}
+function updateCompletion(){const n=assignedCount();document.getElementById('compfill').style.width=(n/52*100)+'%';document.getElementById('compText').textContent=n+'/52';
+  const warn=document.getElementById('assignWarn');warn.textContent=n<52?(52-n)+' cards unassigned':'all 52 assigned ✓';}
+function esc(s){return(s||'').replace(/"/g,'&quot;').replace(/</g,'&lt;');}
+
+document.getElementById('seedBtn').onclick=async()=>{
+  if(assignedCount()>0 && !confirm('Reset all 52 cards to the GenX defaults? This overwrites your current edits.'))return;
+  await applySeed();
+  renderBuilder();toast('GenX defaults loaded — edit freely');
+};
+document.getElementById('clearBtn').onclick=async()=>{
+  if(!confirm('Clear all P/A/O assignments? Your drill history is kept.'))return;
+  for(const id in CARDS){CARDS[id].person=CARDS[id].action=CARDS[id].object='';await saveCard(id);}
+  renderBuilder();toast('Cleared');
+};
+
+/* ====================== DRILL ENGINE ====================== */
+let session=null;
+const flip=document.getElementById('flip'),cardFront=document.getElementById('cardFront'),cardBack=document.getElementById('cardBack');
+const facetAsk=document.getElementById('facetAsk'),deadbar=document.getElementById('deadbar'),targetLabel=document.getElementById('targetLabel');
+const revealPanel=document.getElementById('revealPanel'),gradebar=document.getElementById('gradebar'),hint=document.getElementById('hint');
+const latReadout=document.getElementById('latReadout'),sessionbar=document.getElementById('sessionbar');
+
+function eligibleCards(){
+  const suit=document.getElementById('suitFilter').value;
+  return allCards().filter(c=>{const cc=CARDS[c.id];if(!cc.person||!cc.action||!cc.object)return false;if(suit!=='all'&&c.suit!==suit)return false;return true;});
+}
+function facetsForMode(){const m=document.getElementById('mode').value;return m==='mixed'?FACETS:[m];}
+
+// rolling p75 from last 8 attempts of this (card,facet)
+async function p75For(card,facet){
+  const idx=DB.tx('attempts').index('byCardFacet');
+  return new Promise(res=>{const out=[];const rq=idx.openCursor(IDBKeyRange.only([card,facet]),'prev');
+    rq.onsuccess=e=>{const cur=e.target.result;if(cur&&out.length<8){if(cur.value.grade!=='3')out.push(cur.value.latencyMs);cur.continue();}else res(out.length>=3?quantile(out,0.75):null);};
+    rq.onerror=()=>res(null);});
+}
+function bucketOf(id,f){const k=KEY(id,f);return LEITNER[k]?LEITNER[k].bucket:1;}
+
+// weighted pick: lower bucket => higher weight; skip "graduated" (bucket 5 streak) probabilistically
+function pickRep(elig,facets){
+  const pool=[];
+  for(const c of elig)for(const f of facets){
+    const b=bucketOf(c.id,f);
+    let w=Math.pow(2,(5-b)); // bucket1=16 ... bucket5=1
+    if(b>=5)w=0.4;           // graduated: rests, occasional refresh
+    pool.push({card:c,facet:f,w});
+  }
+  let tot=pool.reduce((s,x)=>s+x.w,0),r=Math.random()*tot;
+  for(const x of pool){r-=x.w;if(r<=0)return x;}
+  return pool[pool.length-1];
+}
+
+let cur=null; // {card,facet,deadline,startTs,answered}
+let deadlineRAF=null,clockStart=0;
+
+async function nextRep(){
+  clearAnim();
+  const elig=eligibleCards();const facets=facetsForMode();
+  if(!elig.length){endSession();toast('No fully-assigned cards match this filter');return;}
+  const pick=pickRep(elig,facets);
+  const p75=await p75For(pick.card.id,pick.facet);
+  const deadline=p75?Math.min(6000,Math.max(400,p75*0.9)):6000;
+  cur={...pick,deadline,answered:false};
+
+  // reset visuals BEFORE paint
+  flip.classList.remove('flipped');
+  gradebar.style.display='none';
+  revealPanel.innerHTML='<div class="hint" id="hint">— recall, then press <b>Space</b> —</div>';
+  latReadout.textContent='';
+  facetAsk.textContent=FACET_LABEL[pick.facet]+'?';
+  targetLabel.textContent=p75?`target ≈ ${Math.round(deadline)}ms  (your p75 ${Math.round(p75)}ms)`:'target — (calibrating)';
+  cardFront.innerHTML=cardSVG(pick.card.suit,pick.card.rank,{});
+  cardBack.innerHTML=cardBackSVG('','');
+  deadbar.style.transition='none';deadbar.style.transform='scaleX(1)';
+
+  // CLOCK START: after the prompt card's first confirmed paint.
+  requestAnimationFrame(()=>{requestAnimationFrame(()=>{
+    clockStart=performance.now();
+    // animate deadline bar
+    deadbar.style.transition=`transform ${deadline}ms linear`;
+    requestAnimationFrame(()=>{deadbar.style.transform='scaleX(0)';});
+  });});
+}
+
+function reveal(){
+  if(!cur||cur.answered)return;
+  // (latency already captured in keydown handler for Space)
+  flip.classList.add('flipped');
+  const c=CARDS[cur.card.id];
+  const ans=c[cur.facet];
+  const ctx=`${cur.card.rank}${SUIT_META[cur.card.suit].sym} · P:${c.person} · A:${c.action} · O:${c.object}`;
+  cardBack.innerHTML=cardBackSVG(ans,FACET_LABEL[cur.facet]);
+  revealPanel.innerHTML=`<div class="reveal-answer">${esc(ans)}</div><div class="reveal-context">${esc(ctx)}</div>`;
+  gradebar.style.display='flex';
+  deadbar.style.transition='none';
+}
+
+async function grade(g){
+  if(!cur||cur.answered||cur._lat==null)return;
+  cur.answered=true;
+  const gradeStr=String(g);
+  const lat=cur._lat;
+  // persist attempt
+  await DB.put('attempts',{card:cur.card.id,facet:cur.facet,latencyMs:Math.round(lat),grade:gradeStr,timestamp:Date.now(),session:session.id});
+  // leitner update
+  const k=KEY(cur.card.id,cur.facet);const st=LEITNER[k]||{bucket:1,streak:0};
+  if(g===1){st.streak++;if(st.streak>=2){st.bucket=Math.min(5,st.bucket+1);st.streak=0;}}
+  else if(g===2){st.streak=0;/* hold */}
+  else{st.bucket=1;st.streak=0;}
+  LEITNER[k]=st;await saveLeitner();
+  // session tally
+  session.reps++;session.lat.push(lat);if(g===1)session.instant++;if(g===2)session.slow++;if(g===3)session.missed++;
+  const beat=lat<=cur.deadline;
+  latReadout.innerHTML=`recall <b>${Math.round(lat)}ms</b> ${beat?'· beat target ✓':'· over target'} · bucket ${st.bucket}`;
+  updateSessionbar();
+  setTimeout(nextRep,260);
+}
+
+function updateSessionbar(){
+  const med=quantile(session.lat,0.5);
+  sessionbar.innerHTML=`<span>reps <b>${session.reps}</b></span>
+    <span style="color:var(--instant)">instant <b>${session.instant}</b></span>
+    <span style="color:var(--slow)">slow <b>${session.slow}</b></span>
+    <span style="color:var(--miss)">missed <b>${session.missed}</b></span>
+    <span>session median <b>${med?Math.round(med)+'ms':'—'}</b></span>`;
+}
+function clearAnim(){if(deadlineRAF)cancelAnimationFrame(deadlineRAF);}
+
+function startSession(){
+  const elig=eligibleCards();
+  if(!elig.length){toast('Assign some cards first (Encode tab)');return;}
+  session={id:'s'+Date.now(),reps:0,instant:0,slow:0,missed:0,lat:[]};
+  document.getElementById('drillStage').style.display='flex';
+  document.getElementById('startBtn').style.display='none';
+  document.getElementById('endBtn').style.display='inline-block';
+  updateSessionbar();nextRep();
+}
+function endSession(){
+  document.getElementById('drillStage').style.display='none';
+  document.getElementById('startBtn').style.display='inline-block';
+  document.getElementById('endBtn').style.display='none';
+  cur=null;
+  if(session&&session.reps)toast(`Session: ${session.reps} reps · median ${Math.round(quantile(session.lat,0.5))}ms`);
+}
+document.getElementById('startBtn').onclick=startSession;
+document.getElementById('endBtn').onclick=endSession;
+// Guide: any [data-go] button presets the drill (suit+mode), switches to Drill, and auto-starts.
+function goToDrill(suit,mode,autostart){
+  if(mode)document.getElementById('mode').value=mode;
+  if(suit)document.getElementById('suitFilter').value=suit;
+  document.querySelector('nav button[data-view="drill"]').click();
+  if(autostart){ if(session)endSession(); startSession(); }
+}
+document.querySelectorAll('[data-go]').forEach(btn=>{
+  btn.onclick=()=>goToDrill(btn.dataset.suit||'all', btn.dataset.mode||'mixed', btn.dataset.autostart==='1');
+});
+document.getElementById('guideEncodeBtn').onclick=()=>document.querySelector('nav button[data-view="builder"]').click();
+document.getElementById('guideDashBtn').onclick=()=>document.querySelector('nav button[data-view="dash"]').click();
+document.getElementById('pathDashBtn').onclick=()=>document.querySelector('nav button[data-view="dash"]').click();
+gradebar.querySelectorAll('.gradebtn').forEach(b=>b.onclick=()=>grade(+b.dataset.g));
+
+/* ---- keyboard: capture latency as FIRST line on Space ---- */
+window.addEventListener('keydown',e=>{
+  if(!session||!cur)return;
+  if(e.code==='Space'){
+    if(!cur.answered && cur._lat==null && !flip.classList.contains('flipped')){
+      cur._lat=performance.now()-clockStart;   // <-- honest latency, before any DOM work
+      e.preventDefault();
+      reveal();
+    }else e.preventDefault();
+    return;
+  }
+  if(flip.classList.contains('flipped')&&!cur.answered){
+    if(e.key==='1')grade(1);else if(e.key==='2')grade(2);else if(e.key==='3')grade(3);
+  }
+});
+// mobile: tap card to reveal
+document.getElementById('flip').addEventListener('click',()=>{
+  if(cur&&!cur.answered&&cur._lat==null&&!flip.classList.contains('flipped')){cur._lat=performance.now()-clockStart;reveal();}
+});
+
+/* ====================== DASHBOARD ====================== */
+async function renderDash(){
+  const all=await DB.getAll('attempts');
+  const statgrid=document.getElementById('statgrid');
+  if(!all.length){statgrid.innerHTML='';document.getElementById('slowList').innerHTML='<div class="empty">No reps yet. Run a drill session.</div>';
+    document.getElementById('facetStats').innerHTML='<div class="empty">—</div>';document.getElementById('trendSvg').innerHTML='';return;}
+  const good=all.filter(a=>a.grade!=='3').map(a=>a.latencyMs);
+  const acc=(all.filter(a=>a.grade!=='3').length/all.length*100);
+  const cards=[
+    ['Total reps',all.length],
+    ['Median latency',Math.round(quantile(good,0.5)||0)+'ms'],
+    ['p75',Math.round(quantile(good,0.75)||0)+'ms'],
+    ['p90',Math.round(quantile(good,0.9)||0)+'ms'],
+    ['Accuracy',acc.toFixed(0)+'%'],
+  ];
+  statgrid.innerHTML=cards.map(([l,v])=>`<div class="stat"><div class="v">${v}</div><div class="l">${l}</div></div>`).join('');
+
+  // trend by session
+  const bySess={};for(const a of all){(bySess[a.session]=bySess[a.session]||[]).push(a);}
+  const sessOrder=Object.keys(bySess).sort();
+  const pts=sessOrder.map(sid=>{const lats=bySess[sid].filter(a=>a.grade!=='3').map(a=>a.latencyMs);
+    return {med:quantile(lats,0.5)||0,p75:quantile(lats,0.75)||0,p90:quantile(lats,0.9)||0};});
+  drawTrend(pts);
+
+  // slowest (card,facet)
+  const cf={};for(const a of all){const k=a.card+'|'+a.facet;(cf[k]=cf[k]||[]).push(a);}
+  const rows=Object.entries(cf).map(([k,arr])=>{const[id,f]=k.split('|');const lats=arr.filter(a=>a.grade!=='3').map(a=>a.latencyMs);
+    return{id,f,p75:quantile(lats,0.75)||0,n:arr.length,miss:arr.filter(a=>a.grade==='3').length};})
+    .filter(r=>r.n>=2).sort((a,b)=>b.p75-a.p75).slice(0,12);
+  const maxP=Math.max(...rows.map(r=>r.p75),1);
+  document.getElementById('slowList').innerHTML=rows.length?`<table><tr><th>Card</th><th>Facet</th><th>p75 latency</th><th>reps</th><th>miss</th></tr>${rows.map(r=>{const c=CARDS[r.id];const nm=c?c[r.f]:'';return `<tr><td>${r.id.slice(1)==='10'?'10':r.id.slice(1)}${SUIT_META[r.id[0]].sym} <span style="color:var(--dim)">${esc(nm)}</span></td><td>${FACET_LABEL[r.f]}</td><td class="bar-cell"><div class="b" style="width:${r.p75/maxP*100}%"></div><span>${Math.round(r.p75)}ms</span></td><td>${r.n}</td><td>${r.miss}</td></tr>`;}).join('')}</table>`:'<div class="empty">Need ≥2 reps per pair.</div>';
+
+  // per-facet p75
+  const fac={};for(const a of all)if(a.grade!=='3')(fac[a.facet]=fac[a.facet]||[]).push(a.latencyMs);
+  document.getElementById('facetStats').innerHTML=`<table><tr><th>Facet</th><th>median</th><th>p75</th><th>p90</th><th>reps</th></tr>${FACETS.map(f=>{const l=fac[f]||[];return`<tr><td>${FACET_LABEL[f]}</td><td>${l.length?Math.round(quantile(l,0.5))+'ms':'—'}</td><td>${l.length?Math.round(quantile(l,0.75))+'ms':'—'}</td><td>${l.length?Math.round(quantile(l,0.9))+'ms':'—'}</td><td>${l.length}</td></tr>`;}).join('')}</table>`;
+}
+function drawTrend(pts){
+  const svg=document.getElementById('trendSvg');const W=600,H=160,pad=8;
+  if(pts.length<2){svg.innerHTML=`<text x="300" y="80" fill="#6b7280" font-family="var(--mono)" font-size="13" text-anchor="middle">Need ≥2 sessions to draw a trend</text>`;return;}
+  const allv=pts.flatMap(p=>[p.med,p.p75,p.p90]);const max=Math.max(...allv)*1.1,min=0;
+  const x=i=>pad+i*(W-2*pad)/(pts.length-1);const y=v=>H-pad-(v-min)/(max-min)*(H-2*pad);
+  const line=(key,col)=>{const d=pts.map((p,i)=>(i?'L':'M')+x(i).toFixed(1)+' '+y(p[key]).toFixed(1)).join(' ');return `<path d="${d}" fill="none" stroke="${col}" stroke-width="2.5"/>`+pts.map((p,i)=>`<circle cx="${x(i).toFixed(1)}" cy="${y(p[key]).toFixed(1)}" r="3" fill="${col}"/>`).join('');};
+  svg.innerHTML=line('p90','#e0414b')+line('p75','#ffb000')+line('med','#39d98a');
+}
+
+/* ---------------- toast ---------------- */
+let toastT;function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2200);}
+
+/* ---------------- boot ---------------- */
+async function applySeed(){
+  for(const s of SUITS)for(const r of RANKS){const [p,a,o]=SEED[s][r];const id=cardId(s,r);CARDS[id].person=p;CARDS[id].action=a;CARDS[id].object=o;await saveCard(id);}
+}
+(async function(){await DB.open();await loadCards();
+  const seededFlag=await DB.get('meta','seeded');
+  // First-ever launch with nothing assigned: auto-load the GenX starter set so the builder isn't a wall of blanks.
+  if(assignedCount()===0 && !seededFlag){await applySeed();await DB.put('meta',{k:'seeded',v:true});toast('Loaded GenX defaults — edit any in the Encode tab');}
+  updateCompletion();
+  const n=assignedCount();
+  document.getElementById('assignWarn').textContent=n<52?(52-n)+' cards unassigned':'all 52 assigned ✓';
+})();
+
+</script>
+</body>
+</html>
