@@ -1,0 +1,133 @@
+@import "tailwindcss";
+
+/* Design tokens — the original :root variables, as Tailwind v4 theme tokens.
+   Tailwind emits these as CSS custom properties on :root, so they are also
+   available to inline styles in JS-generated SVG/HTML (e.g. var(--color-accent),
+   var(--font-disp)). */
+@theme {
+  --color-bg: #0e0f13;
+  --color-surface: #181a21;
+  --color-surface2: #21242e;
+  --color-line: #2c3040;
+  --color-ink: #f4f5f7;
+  --color-muted: #9aa0ad;
+  --color-dim: #6b7280;
+  --color-accent: #ffb000;
+  --color-accent2: #39d98a;
+  --color-red: #e0414b;
+  --color-slow: #f5a623;
+  --color-miss: #e0414b;
+  --color-instant: #39d98a;
+  --color-cardred: #d11f2d;
+  --color-cardblack: #15171c;
+
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  --font-disp: 'Archivo Black', 'Arial Black', sans-serif;
+  --font-body: 'Inter', -apple-system, system-ui, sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background-color: var(--color-bg);
+  background-image:
+    radial-gradient(circle at 20% -10%, rgba(255, 176, 0, 0.06), transparent 40%),
+    radial-gradient(circle at 90% 110%, rgba(57, 217, 138, 0.05), transparent 40%);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  overflow-x: hidden;
+}
+
+/* ---- View show/hide + fade ----
+   Kept as CSS so the original tab-switch animation is byte-identical. */
+.view {
+  display: none;
+}
+.view.active {
+  display: block;
+  animation: fade 0.3s ease;
+}
+@keyframes fade {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ---- 3D card flip ---- */
+.cardbox {
+  perspective: 1200px;
+}
+.card-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.flip {
+  transition: transform 0.42s cubic-bezier(0.2, 0.8, 0.3, 1);
+  transform-style: preserve-3d;
+  position: relative;
+}
+.flip.flipped {
+  transform: rotateY(180deg);
+}
+.face {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.face.back {
+  position: absolute;
+  inset: 0;
+  transform: rotateY(180deg);
+}
+
+/* ---- Guide list marker colors ---- */
+.g-list-ul li::marker {
+  color: var(--color-accent2);
+}
+.g-list-ol li::marker {
+  color: var(--color-accent);
+  font-family: var(--font-mono);
+  font-weight: 600;
+}
+
+/* ---- Dashboard "slowest" latency bar cell ---- */
+.bar-cell {
+  position: relative;
+}
+.bar-cell .b {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 60%;
+  background: rgba(224, 65, 75, 0.25);
+  border-radius: 4px;
+}
+.bar-cell span {
+  position: relative;
+}
+
+/* ---- Toast ---- */
+.toast {
+  opacity: 0;
+  transition: 0.25s;
+  pointer-events: none;
+}
+.toast.show {
+  opacity: 1;
+}
