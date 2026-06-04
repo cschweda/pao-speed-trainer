@@ -1,4 +1,151 @@
+---
+const GCARD = 'border rounded-[14px] px-[22px] py-5 bg-surface border-line';
+const GH3 = 'font-mono text-[13px] uppercase tracking-[1px] text-accent mb-3';
+const GP = 'text-[14.5px] leading-[1.65] text-ink';
+const CHIP =
+  'font-mono text-[12.5px] bg-surface2 text-ink border border-line px-[13px] py-[7px] rounded-[99px] cursor-pointer transition whitespace-nowrap hover:border-accent hover:-translate-y-px';
+const CHIP_GO =
+  'font-mono text-[12.5px] bg-surface2 text-instant border border-[rgba(57,217,138,.4)] px-[13px] py-[7px] rounded-[99px] cursor-pointer transition whitespace-nowrap hover:bg-[rgba(57,217,138,.12)] hover:border-instant hover:-translate-y-px';
+const CHIP_GO_D = CHIP_GO + ' mt-[7px] mr-1.5';
+const BTNP =
+  'font-mono text-[13px] bg-accent text-bg border border-accent font-semibold px-3.5 py-[9px] rounded-[9px] cursor-pointer mt-3.5';
+const GDN =
+  'shrink-0 font-mono text-[11px] font-semibold text-accent bg-surface2 border border-line rounded-md px-2 py-[5px] min-w-[62px] text-center mt-px';
+const DRILL_LI = 'flex gap-3 items-start text-[14px] leading-[1.55]';
+const PHASE = 'border-l-2 border-l-line pl-4 py-0.5 mb-5';
+const PHASE_FINAL = 'border-l-2 border-l-accent2 pl-4 py-0.5 mb-5';
+const PHASE_H = 'font-mono text-[14px] font-semibold text-ink mb-3 flex items-center gap-1.5 flex-wrap';
+const PHASE_TAG = 'text-[10px] tracking-[1px] bg-accent text-bg px-2 py-[3px] rounded-[5px]';
+const PHASE_TAG_F = 'text-[10px] tracking-[1px] bg-accent2 text-bg px-2 py-[3px] rounded-[5px]';
+const DRILLS_OL = 'list-none p-0 m-0 flex flex-col gap-3';
+const STEP_BTNS = 'flex flex-wrap gap-2 mt-[9px]';
+---
+
 <section class="view" :class="{ active: $store.ui.view === 'guide' }" id="view-guide">
   <h2 class="font-disp text-[26px] mt-7 mb-1.5">Start Here</h2>
-  <!-- Filled in Task 9 -->
+  <p class="text-muted text-[14px] mb-[22px] leading-[1.5]">
+    Starting from zero? Read this, then close it and drill. The reps are the teacher — everything here just makes each rep land harder.
+  </p>
+
+  <div class="grid gap-3.5 items-start grid-cols-[repeat(auto-fit,minmax(300px,1fr))]">
+    <div class="border rounded-[14px] px-[22px] py-5 col-span-full bg-[linear-gradient(135deg,rgba(255,176,0,.1),rgba(57,217,138,.06))] border-[rgba(255,176,0,.35)]">
+      <h3 class={GH3}>The one-line version</h3>
+      <p class="text-[16px] leading-[1.7] text-ink">
+        <b>Hearts → Diamonds → Spades → Clubs</b>, one suit at a time. Within each suit walk <b>Person → Action → Object → Mixed</b>. 10–15 min daily, honest grading. Don't add a suit until the last one's "slowest cards" list is flat and low.
+      </p>
+      <div class="flex flex-wrap gap-2 items-center mt-4 pt-3.5 border-t border-line">
+        <span class="font-mono text-[12px] text-muted w-full">Jump straight in:</span>
+        <button class={CHIP_GO} data-go data-suit="H" data-mode="person" data-autostart="1">▶ Hearts · Person</button>
+        <button class={CHIP_GO} data-go data-suit="D" data-mode="person" data-autostart="1">▶ Diamonds · Person</button>
+        <button class={CHIP_GO} data-go data-suit="S" data-mode="person" data-autostart="1">▶ Spades · Person</button>
+        <button class={CHIP_GO} data-go data-suit="C" data-mode="person" data-autostart="1">▶ Clubs · Person</button>
+      </div>
+    </div>
+
+    <div class={GCARD}>
+      <h3 class={GH3}>Why Hearts first (not Diamonds)</h3>
+      <p class={GP}>
+        Lead with your <i class="text-muted">strongest</i> suit, not the first one. As a DJ from '84–'90, the musicians in Hearts are already in your long-term memory — you're not learning "who is Prince," only "Prince lives at King of Hearts." Lightest possible first lift, and your first session becomes a <b>win</b> instead of a slog. That's what builds the daily habit.
+      </p>
+      <button class={BTNP} data-go data-suit="H" data-mode="person" data-autostart="1">▶ Start Hearts · Person now</button>
+    </div>
+
+    <div class={GCARD}>
+      <h3 class={GH3}>Week one, concretely</h3>
+      <ol class="m-0 pl-5 flex flex-col gap-[11px] g-list-ol">
+        <li class="text-[14.5px] leading-[1.6]"><b>Sit with the 13 Hearts in Encode for ~10 min.</b> Don't memorize — just react. Any default that makes you hesitate or feel "meh," rewrite it now while it's cheap. Your DJ instinct for who's iconic beats my sorting. Make those 13 feel like <i class="text-muted">yours</i>.
+        <div class={STEP_BTNS}><button class={CHIP} id="guideEncodeBtn">✎ Open Encode</button></div></li>
+        <li class="text-[14.5px] leading-[1.6]"><b>Drill: Hearts filter + Person only.</b> Person first — the face is the anchor the other two facets hang off. You'll be slow and miss some. That's the rep working, not failure. ~8–10 min, then stop while it's still fresh.
+        <div class={STEP_BTNS}><button class={CHIP_GO} data-go data-suit="H" data-mode="person" data-autostart="1">▶ Hearts · Person</button></div></li>
+        <li class="text-[14.5px] leading-[1.6]"><b>Next day, same thing.</b> It'll already be faster — that overnight jump is consolidation. Feeling it is what hooks you.</li>
+        <li class="text-[14.5px] leading-[1.6]"><b>When Person feels easy, switch to Action only, then Object only</b> — a day or two each.
+        <div class={STEP_BTNS}><button class={CHIP_GO} data-go data-suit="H" data-mode="action" data-autostart="1">▶ Hearts · Action</button><button class={CHIP_GO} data-go data-suit="H" data-mode="object" data-autostart="1">▶ Hearts · Object</button></div></li>
+        <li class="text-[14.5px] leading-[1.6]"><b>Then Mixed facet, still Hearts</b> — all three facets, random order. When that runs fast, Hearts is done. Move to Diamonds, repeat the whole arc.
+        <div class={STEP_BTNS}><button class={CHIP_GO} data-go data-suit="H" data-mode="mixed" data-autostart="1">▶ Hearts · Mixed</button><button class={CHIP_GO} data-go data-suit="D" data-mode="person" data-autostart="1">▶ Begin Diamonds →</button></div></li>
+      </ol>
+    </div>
+
+    <div class="border rounded-[14px] px-[22px] py-5 bg-surface border-line col-span-full">
+      <h3 class={GH3}>The pathway to mastery — drill by drill</h3>
+      <p class={GP + ' mb-[18px]'}>Specific sessions, in order. Each is ~10–15 min. One per day is ideal; never cram two facets of a fresh suit into one sitting. The day numbers are a guide — let the dashboard, not the calendar, tell you when a stage is "done" (slowest-cards list flat and low, p75 falling). Click any session to launch it preset.</p>
+
+      <div class={PHASE}>
+        <div class={PHASE_H}><span class={PHASE_TAG}>PHASE 1</span> Learn Hearts &nbsp;·&nbsp; ~days 1–6</div>
+        <ol class={DRILLS_OL}>
+          <li class={DRILL_LI}><span class={GDN}>Drill 1</span><div class="flex-1"><b>Hearts · Person.</b> Your first session. Expect slow, messy reps and a few misses — that's the trace forming. Grade honestly. <button class={CHIP_GO_D} data-go data-suit="H" data-mode="person" data-autostart="1">▶ Launch</button></div></li>
+          <li class={DRILL_LI}><span class={GDN}>Drill 2</span><div class="flex-1"><b>Hearts · Person again</b> (next day). Notice the overnight speed-up. Repeat daily until most Hearts persons feel automatic (dashboard: Person p75 under ~1.5s). <button class={CHIP_GO_D} data-go data-suit="H" data-mode="person" data-autostart="1">▶ Launch</button></div></li>
+          <li class={DRILL_LI}><span class={GDN}>Drill 3</span><div class="flex-1"><b>Hearts · Action.</b> Now the verbs. These lean on the person you just learned. <button class={CHIP_GO_D} data-go data-suit="H" data-mode="action" data-autostart="1">▶ Launch</button></div></li>
+          <li class={DRILL_LI}><span class={GDN}>Drill 4</span><div class="flex-1"><b>Hearts · Object.</b> The props. Usually the easiest facet because objects are concrete. <button class={CHIP_GO_D} data-go data-suit="H" data-mode="object" data-autostart="1">▶ Launch</button></div></li>
+          <li class={DRILL_LI}><span class={GDN}>Drill 5</span><div class="flex-1"><b>Hearts · Mixed.</b> All three facets, random. This is the real test of the suit. Stay here daily until p75 is low and flat. <button class={CHIP_GO_D} data-go data-suit="H" data-mode="mixed" data-autostart="1">▶ Launch</button></div></li>
+        </ol>
+      </div>
+
+      <div class={PHASE}>
+        <div class={PHASE_H}><span class={PHASE_TAG}>PHASE 2</span> Learn Diamonds &nbsp;·&nbsp; ~days 7–11</div>
+        <ol class={DRILLS_OL}>
+          <li class={DRILL_LI}><span class={GDN}>Drill 6</span><div class="flex-1"><b>Diamonds · Person.</b> Same arc as Hearts. TV/movie faces. <button class={CHIP_GO_D} data-go data-suit="D" data-mode="person" data-autostart="1">▶ Launch</button></div></li>
+          <li class={DRILL_LI}><span class={GDN}>Drill 7</span><div class="flex-1"><b>Diamonds · Action</b>, then <b>· Object</b> on following days. <button class={CHIP_GO_D} data-go data-suit="D" data-mode="action" data-autostart="1">▶ Action</button> <button class={CHIP_GO_D} data-go data-suit="D" data-mode="object" data-autostart="1">▶ Object</button></div></li>
+          <li class={DRILL_LI}><span class={GDN}>Drill 8</span><div class="flex-1"><b>Diamonds · Mixed</b> until flat. <button class={CHIP_GO_D} data-go data-suit="D" data-mode="mixed" data-autostart="1">▶ Launch</button></div></li>
+          <li class={DRILL_LI}><span class={GDN}>Drill 9</span><div class="flex-1"><b>Hearts + Diamonds · Mixed</b> — first cross-suit test. Set suit to <i class="text-muted">All suits</i> for now; the two-suit blend surfaces any bleed between them. Drill until clean. <button class={CHIP_GO_D} data-go data-suit="all" data-mode="mixed" data-autostart="1">▶ Launch (all suits)</button></div></li>
+        </ol>
+        <p class="font-mono text-[11px] text-dim mt-3 leading-[1.5]">Note: the suit filter only does single-suit or all-suits, so "two-suit" sessions use the All-suits setting. While you've only encoded Hearts + Diamonds as solid, all-suits effectively drills what you know plus stretches the rest.</p>
+      </div>
+
+      <div class={PHASE}>
+        <div class={PHASE_H}><span class={PHASE_TAG}>PHASE 3</span> Learn Spades &nbsp;·&nbsp; ~days 12–16</div>
+        <ol class={DRILLS_OL}>
+          <li class={DRILL_LI}><span class={GDN}>Drill 10</span><div class="flex-1"><b>Spades · Person → Action → Object</b>, one per day. Action heroes. <button class={CHIP_GO_D} data-go data-suit="S" data-mode="person" data-autostart="1">▶ Person</button> <button class={CHIP_GO_D} data-go data-suit="S" data-mode="action" data-autostart="1">▶ Action</button> <button class={CHIP_GO_D} data-go data-suit="S" data-mode="object" data-autostart="1">▶ Object</button></div></li>
+          <li class={DRILL_LI}><span class={GDN}>Drill 11</span><div class="flex-1"><b>Spades · Mixed</b> until flat. <button class={CHIP_GO_D} data-go data-suit="S" data-mode="mixed" data-autostart="1">▶ Launch</button></div></li>
+        </ol>
+      </div>
+
+      <div class={PHASE}>
+        <div class={PHASE_H}><span class={PHASE_TAG}>PHASE 4</span> Learn Clubs &nbsp;·&nbsp; ~days 17–21</div>
+        <ol class={DRILLS_OL}>
+          <li class={DRILL_LI}><span class={GDN}>Drill 12</span><div class="flex-1"><b>Clubs · Person → Action → Object</b>, one per day. Cartoons/toys — most exaggerated, often the fastest to learn. <button class={CHIP_GO_D} data-go data-suit="C" data-mode="person" data-autostart="1">▶ Person</button> <button class={CHIP_GO_D} data-go data-suit="C" data-mode="action" data-autostart="1">▶ Action</button> <button class={CHIP_GO_D} data-go data-suit="C" data-mode="object" data-autostart="1">▶ Object</button></div></li>
+          <li class={DRILL_LI}><span class={GDN}>Drill 13</span><div class="flex-1"><b>Clubs · Mixed</b> until flat. <button class={CHIP_GO_D} data-go data-suit="C" data-mode="mixed" data-autostart="1">▶ Launch</button></div></li>
+        </ol>
+      </div>
+
+      <div class={PHASE_FINAL}>
+        <div class={PHASE_H}><span class={PHASE_TAG_F}>PHASE 5</span> Integrate all 52 &nbsp;·&nbsp; ~day 22 onward</div>
+        <ol class={DRILLS_OL}>
+          <li class={DRILL_LI}><span class={GDN}>Drill 14</span><div class="flex-1"><b>All suits · Person.</b> Now drill one facet across the whole deck — exposes which persons still lag once all four categories compete. <button class={CHIP_GO_D} data-go data-suit="all" data-mode="person" data-autostart="1">▶ Launch</button></div></li>
+          <li class={DRILL_LI}><span class={GDN}>Drill 15</span><div class="flex-1"><b>All suits · Action</b>, then <b>· Object.</b> <button class={CHIP_GO_D} data-go data-suit="all" data-mode="action" data-autostart="1">▶ Action</button> <button class={CHIP_GO_D} data-go data-suit="all" data-mode="object" data-autostart="1">▶ Object</button></div></li>
+          <li class={DRILL_LI}><span class={GDN}>Drill 16</span><div class="flex-1"><b>All suits · Mixed</b> — the master drill. All 52 cards, all three facets, fully random. This is your daily driver from here on. <button class={CHIP_GO_D} data-go data-suit="all" data-mode="mixed" data-autostart="1">▶ Launch</button></div></li>
+          <li class={DRILL_LI}><span class={GDN}>Daily</span><div class="flex-1"><b>Keep running All · Mixed</b> and watch the global p75 fall. When you're reliably under ~1s per facet across the deck, your encoding reflex is built — that's the ~120s-deck capability the trainer was made for. Check the dashboard's slowest list and rewrite any persistent laggard with a more personal image. <button class={CHIP} id="pathDashBtn">📈 Dashboard</button></div></li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="border rounded-[14px] px-[22px] py-5 bg-surface border-line col-span-full">
+      <h3 class={GH3}>The rules that matter more than the order</h3>
+      <ul class="m-0 pl-5 flex flex-col gap-[11px] g-list-ul">
+        <li class="text-[14.5px] leading-[1.6]"><b>Short and daily beats long and occasional.</b> 10–15 min every day crushes an hour once a week — the gaps between sessions are where learning sets. Don't cram a suit in one sitting.</li>
+        <li class="text-[14.5px] leading-[1.6]"><b>Grade the 2 (SLOW) honestly.</b> "Got it after half a second of thinking" is exactly the card that costs you on a full deck. Mark it INSTANT and it graduates out and stops getting drilled. <b>Slow is your most valuable grade</b> — it keeps laggards in rotation. Honest grading lets the app route your time perfectly; flattering yourself wastes it.</li>
+        <li class="text-[14.5px] leading-[1.6]"><b>Don't overlap half-learned suits.</b> Wait until the dashboard's "slowest cards" list looks flat and low before adding the next suit, or the associations bleed into each other.</li>
+        <li class="text-[14.5px] leading-[1.6]"><b>Stop studying, start drilling — even when you feel unready.</b> Forcing a retrieval and failing builds the memory trace harder than re-reading the answer ten times. This is the most robust finding in all of learning science.</li>
+      </ul>
+    </div>
+
+    <div class={GCARD}>
+      <h3 class={GH3}>What "done" feels like</h3>
+      <p class={GP}>Early on you'll consciously assemble each card — "MJ… moonwalking… glove." That's scaffolding, and it's fine. The goal is to drill until that assembly wears away and the triplet arrives as a <b>single fused image</b>, not a story. When a card shows sub-500ms latency on the dashboard, it has made that transition. That reflex — card hits your eye, person fires before you can think — is the whole point. No tip shortcuts it; only correct reps under time pressure build it.</p>
+      <button class={CHIP + ' mt-3.5'} id="guideDashBtn">📈 See your progress</button>
+    </div>
+
+    <div class={GCARD}>
+      <h3 class={GH3}>For a stubborn card</h3>
+      <p class={GP}>During <i class="text-muted">encoding</i> only, invent any silly logical hook to get it to stick ("4 of Clubs / G.I. Joe — four-letter Joe, four-star general"). Use it for the first few exposures, then let the drill sand it away. The hook is a ladder you kick out once you're up — recall itself should never be logical, because logic is slower than reflex.</p>
+    </div>
+
+    <div class="border rounded-[14px] px-[22px] py-5 col-span-full text-center bg-[linear-gradient(135deg,rgba(57,217,138,.1),rgba(255,176,0,.05))] border-[rgba(57,217,138,.35)]">
+      <h3 class={GH3}>Right now</h3>
+      <p class={GP}>This is the proper first session — <b>Hearts, Person only</b>. One click starts it. The first session is the only hard one to start.</p>
+      <button class={BTNP} data-go data-suit="H" data-mode="person" data-autostart="1">▶ Start my first drill</button>
+      <div class="mt-3">
+        <button class={CHIP} data-go data-suit="all" data-mode="mixed" data-autostart="0">Or set up a custom session →</button>
+      </div>
+    </div>
+  </div>
 </section>
