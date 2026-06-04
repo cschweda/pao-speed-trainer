@@ -1,0 +1,14 @@
+# Netlify configuration for the PAO Speed Trainer.
+# Static Astro build — no adapter or server needed. The Node version is
+# pinned in .nvmrc (Netlify reads it automatically).
+
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+# Astro emits content-hashed filenames under /_astro/, so those assets are
+# immutable and safe to cache forever.
+[[headers]]
+  for = "/_astro/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"

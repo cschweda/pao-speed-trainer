@@ -59,6 +59,12 @@ docs/                    # original single-file prototype + design/plan specs
 Everything — your encodings and your drill history — lives in your browser's **IndexedDB**. Nothing
 is uploaded or sent anywhere. Clearing your browser data for this site resets the trainer.
 
+## Deploy
+
+The site is a fully static build, so it deploys to any static host. For **Netlify**, the included
+[`netlify.toml`](./netlify.toml) and [`.nvmrc`](./.nvmrc) configure everything — connect the repo and
+Netlify runs `npm run build` and publishes `dist/` on Node 22. No adapter or server is required.
+
 ## License
 
 [MIT](./LICENSE) © 2026 cschweda
