@@ -1,0 +1,28 @@
+<header
+  class="sticky top-0 z-50 flex items-center gap-3.5 px-4 py-[18px] border-b border-line backdrop-blur-[12px]"
+  style="background:rgba(14,15,19,.82)"
+>
+  <div class="font-disp text-[18px] tracking-[.5px]">PAO<span class="text-accent">·</span>SPEED</div>
+  <nav class="ml-auto flex flex-wrap gap-1">
+    <button
+      @click="$store.ui.view='drill'"
+      :class="$store.ui.view==='drill' ? 'text-bg bg-accent font-semibold' : 'text-muted hover:text-ink hover:bg-surface'"
+      class="font-mono text-[13px] px-3.5 py-2 rounded-lg border border-transparent cursor-pointer transition"
+    >DRILL</button>
+    <button
+      @click="$store.ui.view='builder'"
+      :class="$store.ui.view==='builder' ? 'text-bg bg-accent font-semibold' : 'text-muted hover:text-ink hover:bg-surface'"
+      class="font-mono text-[13px] px-3.5 py-2 rounded-lg border border-transparent cursor-pointer transition"
+    >ENCODE</button>
+    <button
+      @click="$store.ui.view='dash'"
+      :class="$store.ui.view==='dash' ? 'text-bg bg-accent font-semibold' : 'text-muted hover:text-ink hover:bg-surface'"
+      class="font-mono text-[13px] px-3.5 py-2 rounded-lg border border-transparent cursor-pointer transition"
+    >PROGRESS</button>
+    <button
+      @click="$store.ui.view='guide'"
+      :class="$store.ui.view==='guide' ? 'text-bg bg-accent font-semibold' : 'text-muted hover:text-ink hover:bg-surface'"
+      class="font-mono text-[13px] px-3.5 py-2 rounded-lg border border-transparent cursor-pointer transition"
+    >START HERE</button>
+  </nav>
+</header>

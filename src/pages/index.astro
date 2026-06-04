@@ -1,16 +1,34 @@
 ---
-// Temporary placeholder — replaced in Task 5 with the full app shell.
 import '../styles/global.css';
+import Header from '../components/Header.astro';
+import DrillView from '../components/DrillView.astro';
+import BuilderView from '../components/BuilderView.astro';
+import DashView from '../components/DashView.astro';
+import GuideView from '../components/GuideView.astro';
+import Toast from '../components/Toast.astro';
 ---
 
 <!doctype html>
 <html lang="en">
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>PAO Speed Trainer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
   </head>
-  <body>
-    <h1>PAO Speed Trainer</h1>
+  <body x-data>
+    <Header />
+    <div class="mx-auto max-w-[1100px] px-4 pb-20">
+      <DrillView />
+      <BuilderView />
+      <DashView />
+      <GuideView />
+    </div>
+    <Toast />
   </body>
 </html>
