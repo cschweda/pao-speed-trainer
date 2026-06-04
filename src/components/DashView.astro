@@ -1,4 +1,28 @@
-<section class="view" :class="{ active: $store.ui.view === 'dash' }" id="view-dash">
+<section class="view" :class="{ active: $store.ui.view === 'dash' }" id="view-dash" x-data="dash()">
   <h2 class="font-disp text-[26px] mt-7 mb-1.5">Progress</h2>
-  <!-- Filled in Task 8 -->
+  <p class="text-muted text-[14px] mb-[22px] leading-[1.5]">
+    Watch the curve bend down. Latency is render→reveal keypress only.
+  </p>
+
+  <div class="grid gap-3 mb-[22px] grid-cols-[repeat(auto-fit,minmax(150px,1fr))]" id="statgrid" x-html="statCards"></div>
+
+  <div class="bg-surface border border-line rounded-xl p-[18px] mb-[18px]">
+    <h3 class="font-mono text-[13px] uppercase tracking-[1px] text-muted mb-3.5">Latency trend (per session median)</h3>
+    <svg class="w-full h-40 block" viewBox="0 0 600 160" preserveAspectRatio="none" id="trendSvg" x-html="trend"></svg>
+    <div class="flex gap-4 font-mono text-[11px] text-muted mt-2 flex-wrap">
+      <span><i style="background:#39d98a" class="inline-block w-2.5 h-2.5 rounded-[2px] mr-[5px] align-middle"></i>median</span>
+      <span><i style="background:#ffb000" class="inline-block w-2.5 h-2.5 rounded-[2px] mr-[5px] align-middle"></i>p75</span>
+      <span><i style="background:#e0414b" class="inline-block w-2.5 h-2.5 rounded-[2px] mr-[5px] align-middle"></i>p90</span>
+    </div>
+  </div>
+
+  <div class="bg-surface border border-line rounded-xl p-[18px] mb-[18px]">
+    <h3 class="font-mono text-[13px] uppercase tracking-[1px] text-muted mb-3.5">Slowest (card · facet) — where your seconds go</h3>
+    <div id="slowList" x-html="slowList"></div>
+  </div>
+
+  <div class="bg-surface border border-line rounded-xl p-[18px] mb-[18px]">
+    <h3 class="font-mono text-[13px] uppercase tracking-[1px] text-muted mb-3.5">Per-facet latency (p75, ms)</h3>
+    <div id="facetStats" x-html="facetStats"></div>
+  </div>
 </section>

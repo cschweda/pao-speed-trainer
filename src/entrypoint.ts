@@ -1,7 +1,8 @@
 import type { Alpine } from 'alpinejs';
-import { DB, loadCards, applySeed, assignedCount, clearAll, saveCard, CARDS } from './lib/db';
+import { DB, loadCards, applySeed, assignedCount, clearAll, saveCard, CARDS, type Attempt } from './lib/db';
 import { SUITS, RANKS, cardId, type Suit } from './lib/data';
 import { cardSVG } from './lib/svg';
+import { computeDash } from './lib/dash';
 import * as drill from './lib/drill';
 
 interface DeckStore {
@@ -100,6 +101,28 @@ export default (Alpine: Alpine) => {
       this._build();
       (Alpine.store('deck') as DeckStore).refresh();
       (Alpine.store('toast') as ToastStore).show('Cleared');
+    },
+  }));
+
+  // ---- Dashboard (Progress) component ----
+  Alpine.data('dash', () => ({
+    statCards: '',
+    trend: '',
+    slowList: '',
+    facetStats: '',
+    init() {
+      const load = async () => {
+        const all = await DB.getAll<Attempt>('attempts');
+        const r = computeDash(all);
+        this.statCards = r.statCardsHTML;
+        this.trend = r.trendSVG;
+        this.slowList = r.slowListHTML;
+        this.facetStats = r.facetStatsHTML;
+      };
+      (this as unknown as AlpineWatch).$watch('$store.ui.view', (v) => {
+        if (v === 'dash') load();
+      });
+      if ((Alpine.store('ui') as { view: string }).view === 'dash') load();
     },
   }));
 
