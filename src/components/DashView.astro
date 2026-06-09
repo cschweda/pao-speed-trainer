@@ -1,13 +1,49 @@
+---
+const SEL = 'font-mono text-[13px] bg-surface text-ink border border-line px-3.5 py-[9px] rounded-[9px] cursor-pointer';
+const CARD = 'bg-surface border border-line rounded-xl p-[18px] mb-[18px]';
+const H3 = 'font-mono text-[13px] uppercase tracking-[1px] text-muted mb-3.5 mt-0';
+---
+
 <section class="view" :class="{ active: $store.ui.view === 'dash' }" id="view-dash" x-data="dash()">
   <h2 class="font-disp text-[26px] mt-7 mb-1.5">Progress</h2>
   <p class="text-muted text-[14px] mb-[22px] leading-[1.5]">
     Watch the curve bend down. Latency is render→reveal keypress only.
   </p>
 
+  <div class="flex flex-wrap items-center gap-2.5 mb-[18px]">
+    <select x-model="suit" @change="load()" class={SEL}>
+      <option value="">All suits</option>
+      <option value="H">♥ Hearts</option>
+      <option value="S">♠ Spades</option>
+      <option value="D">♦ Diamonds</option>
+      <option value="C">♣ Clubs</option>
+    </select>
+    <select x-model="days" @change="load()" class={SEL}>
+      <option value="0">All time</option>
+      <option value="7">Last 7 days</option>
+      <option value="30">Last 30 days</option>
+    </select>
+  </div>
+
   <div class="grid gap-3 mb-[22px] grid-cols-[repeat(auto-fit,minmax(150px,1fr))]" id="statgrid" x-html="statCards"></div>
 
-  <div class="bg-surface border border-line rounded-xl p-[18px] mb-[18px]">
-    <h3 class="font-mono text-[13px] uppercase tracking-[1px] text-muted mb-3.5">Latency trend (per session median)</h3>
+  <div class={CARD}>
+    <h3 class={H3}>Daily habit — short and daily beats long and occasional</h3>
+    <div x-html="habit"></div>
+  </div>
+
+  <div class={CARD}>
+    <h3 class={H3}>Scheduling state — where every pair sits</h3>
+    <div x-html="bucketDist"></div>
+  </div>
+
+  <div class={CARD} x-show="suitTable" x-cloak>
+    <h3 class={H3}>Per suit — is it "done"? (graduated high, p75 low and flat)</h3>
+    <div x-html="suitTable"></div>
+  </div>
+
+  <div class={CARD}>
+    <h3 class={H3}>Latency trend (per session median, card → image)</h3>
     <svg class="w-full h-40 block" viewBox="0 0 600 160" preserveAspectRatio="none" id="trendSvg" x-html="trend"></svg>
     <div class="flex gap-4 font-mono text-[11px] text-muted mt-2 flex-wrap">
       <span><i style="background:#39d98a" class="inline-block w-2.5 h-2.5 rounded-[2px] mr-[5px] align-middle"></i>median</span>
@@ -16,13 +52,27 @@
     </div>
   </div>
 
-  <div class="bg-surface border border-line rounded-xl p-[18px] mb-[18px]">
-    <h3 class="font-mono text-[13px] uppercase tracking-[1px] text-muted mb-3.5">Slowest (card · facet) — where your seconds go</h3>
+  <div class={CARD}>
+    <div class="flex items-center justify-between flex-wrap gap-2 mb-3.5">
+      <h3 class="font-mono text-[13px] uppercase tracking-[1px] text-muted m-0">Slowest (card · asked) — where your seconds go</h3>
+      <button
+        x-show="slowPairs.length"
+        x-cloak
+        @click="drillSlow()"
+        class="font-mono text-[12px] bg-surface2 text-instant border border-[rgba(57,217,138,.4)] px-3 py-[6px] rounded-[99px] cursor-pointer transition hover:bg-[rgba(57,217,138,.12)]"
+        title="Start a drill session restricted to exactly these pairs"
+      >▶ Drill these</button>
+    </div>
     <div id="slowList" x-html="slowList"></div>
   </div>
 
-  <div class="bg-surface border border-line rounded-xl p-[18px] mb-[18px]">
-    <h3 class="font-mono text-[13px] uppercase tracking-[1px] text-muted mb-3.5">Per-facet latency (p75, ms)</h3>
+  <div class={CARD}>
+    <h3 class={H3}>Latency by question type</h3>
     <div id="facetStats" x-html="facetStats"></div>
+  </div>
+
+  <div x-show="deckStats" x-cloak>
+    <h3 class="font-mono text-[13px] uppercase tracking-[1px] text-muted mb-3.5">Deck runs</h3>
+    <div class="grid gap-3 mb-[22px] grid-cols-[repeat(auto-fit,minmax(150px,1fr))]" x-html="deckStats"></div>
   </div>
 </section>

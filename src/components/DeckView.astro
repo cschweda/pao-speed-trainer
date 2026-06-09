@@ -1,0 +1,88 @@
+---
+const BTN_P = 'font-mono text-[13px] bg-accent text-bg border border-accent font-semibold px-3.5 py-[9px] rounded-[9px] cursor-pointer';
+const BTN_G = 'font-mono text-[13px] bg-transparent text-ink border border-line px-3.5 py-[9px] rounded-[9px] cursor-pointer hover:border-accent disabled:opacity-40 disabled:cursor-default';
+const SEL = 'font-mono text-[13px] bg-surface2 text-ink border border-line px-3.5 py-[9px] rounded-[9px] cursor-pointer';
+---
+
+<section class="view" :class="{ active: $store.ui.view === 'deck' }" id="view-deck">
+  <h2 class="font-disp text-[26px] mt-7 mb-1.5">Deck Run</h2>
+  <p class="text-muted text-[14px] mb-[22px] leading-[1.5]">
+    The real test: memorize a shuffled deck in groups of three — person of the 1st, action of the 2nd, object of the 3rd, one scene per group — then rebuild the order from memory.
+  </p>
+
+  <div id="deckIdle">
+    <div class="bg-surface border border-line rounded-xl p-[18px] mb-[18px]">
+      <p class="text-[14.5px] leading-[1.65] text-ink mt-0">
+        <b>Memorize</b>: 18 groups, self-paced — fuse each scene (place it along a mental journey if you use one), then <b>Space</b> or tap for the next. The clock runs from your first look to your last.
+        <b>Recall</b>: click the 52 cards back in order. You get a deck time, a score, and the exact positions that broke.
+      </p>
+      <p class="text-[13.5px] leading-[1.6] text-muted">
+        <b class="text-ink">Order</b>: a fresh random shuffle is the sport. Pick a magic stack instead to learn it — run it daily until 52/52 is easy, then use the <b class="text-ink">stack quiz</b> to weld in position ↔ card.
+      </p>
+      <div class="flex flex-wrap items-center gap-2.5">
+        <select id="stackSel" class={SEL}>
+          <option value="random">Random shuffle</option>
+          <option value="mnemonica">Mnemonica (Tamariz)</option>
+          <option value="aronson">Aronson</option>
+          <option value="stebbins">Si Stebbins (A♣ · +3 · CHaSeD)</option>
+          <option value="custom">Custom stack…</option>
+        </select>
+        <button id="deckStartBtn" class={BTN_P}>▶ Memorize this deck</button>
+        <button id="quizBtn" class={BTN_G} title="Position ↔ card quiz on the selected stack">🃏 Stack quiz</button>
+      </div>
+      <textarea
+        id="customStack"
+        style="display:none"
+        rows="3"
+        placeholder="Paste 52 cards in order — rank then suit, e.g.  4C 2H 7D 3C …  (spaces or commas)"
+        class="w-full mt-2.5 bg-surface2 border border-line text-ink font-mono text-[12.5px] px-3 py-2.5 rounded-[9px] focus:outline-none focus:border-accent"
+      ></textarea>
+      <div id="stackErr" style="display:none" class="font-mono text-[12px] text-miss mt-2"></div>
+    </div>
+    <div class="bg-surface border border-line rounded-xl p-[18px]">
+      <h3 class="font-mono text-[13px] uppercase tracking-[1px] text-muted mt-0 mb-3">Run history</h3>
+      <div id="deckHistory"></div>
+    </div>
+  </div>
+
+  <div id="deckMem" style="display:none" class="flex-col items-center gap-[18px] mt-2.5">
+    <div id="memMeta" class="font-mono text-[14px] text-muted">group —</div>
+    <div id="memGroup" class="flex gap-3 justify-center cursor-pointer max-w-full" title="Tap to advance"></div>
+    <div class="font-mono text-[12px] text-dim">fuse the scene, then <b>Space</b> (or tap the cards) for the next group</div>
+    <button id="memAbort" class={BTN_G}>abort run</button>
+  </div>
+
+  <div id="deckRecall" style="display:none" class="mt-2.5">
+    <div id="recallMeta" class="font-mono text-[13px] text-muted mb-3">recall</div>
+    <div id="recallSeq" class="flex flex-wrap gap-1.5 mb-4 min-h-[28px] items-center"></div>
+    <div id="recallBank" class="flex flex-col gap-2 mb-4"></div>
+    <div class="flex gap-2.5 flex-wrap">
+      <button id="recallUndo" class={BTN_G}>↶ undo last</button>
+      <button id="recallScore" class={BTN_P} disabled>Score it</button>
+      <button id="recallAbort" class={BTN_G}>abort</button>
+    </div>
+  </div>
+
+  <div id="deckQuiz" style="display:none" class="flex-col items-center gap-[18px] mt-2.5">
+    <div id="quizMeta" class="font-mono text-[13px] text-muted"></div>
+    <div id="quizPrompt" class="text-center cursor-pointer bg-surface border border-line rounded-xl px-10 py-7 min-w-[220px]" title="Tap to reveal"></div>
+    <div id="quizReveal" class="min-h-[72px] text-center"></div>
+    <div id="quizGrades" style="display:none" class="flex gap-2.5 justify-center flex-wrap">
+      <button
+        data-qg="1"
+        class="font-mono text-[13px] px-[18px] py-3 rounded-[10px] border border-instant bg-surface text-ink cursor-pointer min-w-[96px] transition hover:-translate-y-px hover:bg-[rgba(57,217,138,.12)]"
+      ><b class="block text-[11px] text-dim mb-[3px]">1</b>INSTANT</button>
+      <button
+        data-qg="2"
+        class="font-mono text-[13px] px-[18px] py-3 rounded-[10px] border border-slow bg-surface text-ink cursor-pointer min-w-[96px] transition hover:-translate-y-px hover:bg-[rgba(245,166,35,.12)]"
+      ><b class="block text-[11px] text-dim mb-[3px]">2</b>GOT IT (SLOW)</button>
+      <button
+        data-qg="3"
+        class="font-mono text-[13px] px-[18px] py-3 rounded-[10px] border border-miss bg-surface text-ink cursor-pointer min-w-[96px] transition hover:-translate-y-px hover:bg-[rgba(224,65,75,.12)]"
+      ><b class="block text-[11px] text-dim mb-[3px]">3</b>MISSED</button>
+    </div>
+    <button id="quizStop" class={BTN_G}>End quiz</button>
+  </div>
+
+  <div id="deckDone" style="display:none" class="mt-2.5"></div>
+</section>

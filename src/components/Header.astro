@@ -10,6 +10,11 @@
       class="font-mono text-[13px] px-3.5 py-2 rounded-lg border border-transparent cursor-pointer transition"
     >DRILL</button>
     <button
+      @click="$store.ui.view='deck'"
+      :class="$store.ui.view==='deck' ? 'text-bg bg-accent font-semibold' : 'text-muted hover:text-ink hover:bg-surface'"
+      class="font-mono text-[13px] px-3.5 py-2 rounded-lg border border-transparent cursor-pointer transition"
+    >DECK</button>
+    <button
       @click="$store.ui.view='builder'"
       :class="$store.ui.view==='builder' ? 'text-bg bg-accent font-semibold' : 'text-muted hover:text-ink hover:bg-surface'"
       class="font-mono text-[13px] px-3.5 py-2 rounded-lg border border-transparent cursor-pointer transition"

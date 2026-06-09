@@ -9,29 +9,49 @@ export interface CardRecord {
   object: string;
 }
 
+/** Drill direction: card→image (fwd), image→card (rev), 3-card triplet fusion. */
+export type Dir = 'fwd' | 'rev' | 'fusion';
+
 export interface LeitnerEntry {
   bucket: number;
   streak: number;
+  lastAt?: number; // timestamp of this pair's most recent graded rep
+  due?: number; // timestamp when the pair is next due (bucket interval)
 }
 
 export interface Attempt {
   aid?: number;
-  card: string;
-  facet: Facet;
+  card: string; // single id, or 'QH+JS+4C' for fusion triplets
+  facet: Facet | 'triplet';
+  dir?: Dir; // absent on legacy rows = 'fwd'
   latencyMs: number;
   grade: string;
   timestamp: number;
   session: string;
 }
 
+export interface DeckRun {
+  rid?: number;
+  timestamp: number;
+  stack?: string; // 'random' (default) | 'mnemonica' | 'aronson' | 'stebbins' | 'custom'
+  memMs: number; // memorize phase: first paint → last keypress
+  recallMs: number;
+  correct: number;
+  total: number;
+  firstError: number; // 0-based position of first wrong card, -1 if perfect
+  splits: number[]; // per-group memorize times
+  order: string[]; // dealt order
+  answer: string[]; // user-entered order
+}
+
 /* ---------------- IndexedDB ----------------
-   Schema is byte-identical to the original prototype so existing data
-   (and the `seeded` flag) carries over unchanged. */
+   v1 schema is byte-identical to the original prototype so existing data
+   (and the `seeded` flag) carries over unchanged. v2 adds `deckruns`. */
 export const DB = {
   _db: null as IDBDatabase | null,
   open(): Promise<void> {
     return new Promise((res, rej) => {
-      const rq = indexedDB.open('pao-speed', 1);
+      const rq = indexedDB.open('pao-speed', 2);
       rq.onupgradeneeded = (e) => {
         const db = (e.target as IDBOpenDBRequest).result;
         if (!db.objectStoreNames.contains('cards')) db.createObjectStore('cards', { keyPath: 'id' });
@@ -41,6 +61,7 @@ export const DB = {
           a.createIndex('bySession', 'session');
         }
         if (!db.objectStoreNames.contains('meta')) db.createObjectStore('meta', { keyPath: 'k' });
+        if (!db.objectStoreNames.contains('deckruns')) db.createObjectStore('deckruns', { keyPath: 'rid', autoIncrement: true });
       };
       rq.onsuccess = (e) => {
         this._db = (e.target as IDBOpenDBRequest).result;
@@ -73,6 +94,23 @@ export const DB = {
       r.onerror = () => rej(r.error);
     });
   },
+  delete(store: string, k: IDBValidKey): Promise<void> {
+    return new Promise((res, rej) => {
+      const r = this.tx(store, 'readwrite').delete(k);
+      r.onsuccess = () => res();
+      r.onerror = () => rej(r.error);
+    });
+  },
+  // bulk write in a single transaction (imports would crawl one-tx-per-row)
+  putAll(store: string, rows: any[]): Promise<void> {
+    return new Promise((res, rej) => {
+      const t = this._db!.transaction(store, 'readwrite');
+      const os = t.objectStore(store);
+      for (const r of rows) os.put(r);
+      t.oncomplete = () => res();
+      t.onerror = () => rej(t.error);
+    });
+  },
   clear(store: string): Promise<void> {
     return new Promise((res, rej) => {
       const r = this.tx(store, 'readwrite').clear();
@@ -84,8 +122,10 @@ export const DB = {
 
 /* ---------------- State ---------------- */
 export let CARDS: Record<string, CardRecord> = {}; // id -> {id,suit,rank,person,action,object}
-export let LEITNER: Record<string, LeitnerEntry> = {}; // "id|facet" -> {bucket, streak}
-export const KEY = (id: string, f: string): string => id + '|' + f;
+export let LEITNER: Record<string, LeitnerEntry> = {}; // key -> {bucket, streak, lastAt?, due?}
+export let FLAGS: Set<string> = new Set(); // card ids flagged for re-encoding
+// Forward keys stay "id|facet" so pre-existing Leitner state carries over; reverse is its own item.
+export const KEY = (id: string, f: string, dir: Dir = 'fwd'): string => (dir === 'rev' ? id + '|' + f + '|rev' : id + '|' + f);
 
 export async function loadCards(): Promise<void> {
   const rows = await DB.getAll<CardRecord>('cards');
@@ -94,6 +134,20 @@ export async function loadCards(): Promise<void> {
   for (const r of rows) if (CARDS[r.id]) CARDS[r.id] = { ...CARDS[r.id], ...r };
   const lz = await DB.get<{ k: string; v: Record<string, LeitnerEntry> }>('meta', 'leitner');
   LEITNER = lz ? lz.v : {};
+  const fz = await DB.get<{ k: string; v: string[] }>('meta', 'flags');
+  FLAGS = new Set(fz ? fz.v : []);
+}
+
+export async function saveFlags(): Promise<void> {
+  await DB.put('meta', { k: 'flags', v: [...FLAGS] });
+}
+
+export async function toggleFlag(id: string): Promise<boolean> {
+  const on = !FLAGS.has(id);
+  if (on) FLAGS.add(id);
+  else FLAGS.delete(id);
+  await saveFlags();
+  return on;
 }
 
 export async function saveCard(id: string): Promise<void> {

@@ -1,7 +1,11 @@
+---
+const TOOLBTN = 'font-mono text-[13px] bg-surface text-ink border border-line px-3.5 py-[9px] rounded-[9px] cursor-pointer hover:border-accent';
+---
+
 <section class="view" :class="{ active: $store.ui.view === 'builder' }" id="view-builder" x-data="builder()">
   <h2 class="font-disp text-[26px] mt-7 mb-1.5">Encoding Builder</h2>
   <p class="text-muted text-[14px] mb-[22px] leading-[1.5]">
-    Your own images beat any preset. Suit = category. Edit freely; overwrite anything that doesn't stick.
+    Your own images beat any preset. Suit = category. Edit freely; overwrite anything that doesn't stick. Editing a facet restarts that pair's drill schedule — a new image is a new memory.
   </p>
 
   <div class="flex gap-2.5 flex-wrap items-stretch mb-5">
@@ -26,8 +30,8 @@
     </div>
   </div>
 
-  <div class="flex items-center gap-3.5 mb-[18px]">
-    <div class="flex-1 h-2.5 bg-surface2 rounded-[99px] overflow-hidden max-w-[360px]">
+  <div class="flex items-center gap-3.5 mb-[18px] flex-wrap">
+    <div class="flex-1 h-2.5 bg-surface2 rounded-[99px] overflow-hidden max-w-[360px] min-w-[140px]">
       <div
         id="compfill"
         class="h-full bg-[linear-gradient(90deg,var(--color-accent),var(--color-accent2))] transition-all duration-[400ms]"
@@ -39,30 +43,57 @@
       class="font-mono text-[12px] text-muted bg-surface px-3 py-1.5 rounded-[99px] border border-line"
       x-text="`${$store.deck.assigned}/52`"
     ></span>
-    <button
-      id="seedBtn"
-      @click="seed()"
-      class="font-mono text-[13px] bg-surface text-ink border border-line px-3.5 py-[9px] rounded-[9px] cursor-pointer hover:border-accent"
-    >Reset to GenX defaults</button>
-    <button
-      id="clearBtn"
-      @click="clear()"
-      class="font-mono text-[13px] bg-transparent text-ink border border-line px-3.5 py-[9px] rounded-[9px] cursor-pointer hover:border-accent"
-    >Clear all</button>
+    <button id="seedBtn" @click="seed()" class={TOOLBTN}>Reset to GenX defaults</button>
+    <button id="clearBtn" @click="clear()" class={TOOLBTN}>Clear all</button>
+    <span class="grow"></span>
+    <button @click="exportData()" class={TOOLBTN} title="Download everything — encodings, schedule, drill history, deck runs">⬇ Export backup</button>
+    <button @click="$refs.importFile.click()" class={TOOLBTN} title="Restore a backup file (replaces current data)">⬆ Import</button>
+    <input type="file" accept="application/json,.json" class="hidden" x-ref="importFile" @change="importData($event)" />
+    <button @click="print()" class={TOOLBTN} title="Print-friendly reference sheet of all 52 images">🖨 Print list</button>
+  </div>
+
+  <div
+    x-show="lint.list.length"
+    x-cloak
+    class="border border-[rgba(224,65,75,.4)] bg-[rgba(224,65,75,.06)] rounded-[11px] px-4 py-3 mb-[18px]"
+  >
+    <b class="font-mono text-[12px] text-miss uppercase tracking-[1px]">⚠ image collisions</b>
+    <p class="text-[13px] text-muted mt-1 mb-2 leading-[1.5]">
+      Two cards sharing an image decode ambiguously mid-deck — you'll know the action fired but not which card it was. Make each unique.
+    </p>
+    <div class="flex flex-col gap-1 font-mono text-[12.5px]">
+      <template x-for="d in lint.list" :key="d.facet + d.text">
+        <div>
+          <span class="text-dim uppercase" x-text="d.facet"></span>
+          “<span class="text-ink" x-text="d.text"></span>” —
+          <span class="text-slow" x-text="d.cards.join(' & ')"></span>
+        </div>
+      </template>
+    </div>
   </div>
 
   <div class="grid gap-3 grid-cols-[repeat(auto-fill,minmax(310px,1fr))]" id="builderGrid">
     <template x-for="card in cards" :key="card.id">
       <div
         class="bg-surface border border-line rounded-xl p-3.5 flex gap-3 items-start"
-        :class="{ 'border-[rgba(57,217,138,.4)]': card.person && card.action && card.object }"
+        :class="isFlagged(card) ? 'border-[rgba(255,176,0,.6)]' : (card.person && card.action && card.object ? 'border-[rgba(57,217,138,.4)]' : '')"
       >
-        <div class="w-[54px] shrink-0" x-html="mini(card)"></div>
+        <div class="w-[54px] shrink-0">
+          <span x-html="mini(card)"></span>
+          <button
+            x-show="isFlagged(card)"
+            x-cloak
+            @click="unflag(card)"
+            class="font-mono text-[10px] text-slow bg-transparent border border-[rgba(255,176,0,.5)] rounded-[6px] px-1 py-[2px] mt-1.5 cursor-pointer w-full"
+            title="Flagged from a drill — click to unflag"
+          >⚑ unflag</button>
+        </div>
         <div class="flex-1 flex flex-col gap-[7px]">
           <div class="flex items-center gap-[7px]">
             <label class="font-mono text-[10px] text-dim w-3.5">P</label>
             <input
-              class="flex-1 bg-surface2 border border-line text-ink font-body text-[13px] px-[9px] py-[7px] rounded-[7px] focus:outline-none focus:border-accent"
+              class="flex-1 bg-surface2 border text-ink font-body text-[13px] px-[9px] py-[7px] rounded-[7px] focus:outline-none focus:border-accent"
+              :class="dupe(card, 'person') ? 'border-miss' : 'border-line'"
               x-model="card.person"
               @change="save(card, 'person')"
               placeholder="Person"
@@ -71,7 +102,8 @@
           <div class="flex items-center gap-[7px]">
             <label class="font-mono text-[10px] text-dim w-3.5">A</label>
             <input
-              class="flex-1 bg-surface2 border border-line text-ink font-body text-[13px] px-[9px] py-[7px] rounded-[7px] focus:outline-none focus:border-accent"
+              class="flex-1 bg-surface2 border text-ink font-body text-[13px] px-[9px] py-[7px] rounded-[7px] focus:outline-none focus:border-accent"
+              :class="dupe(card, 'action') ? 'border-miss' : 'border-line'"
               x-model="card.action"
               @change="save(card, 'action')"
               placeholder="Action"
@@ -80,7 +112,8 @@
           <div class="flex items-center gap-[7px]">
             <label class="font-mono text-[10px] text-dim w-3.5">O</label>
             <input
-              class="flex-1 bg-surface2 border border-line text-ink font-body text-[13px] px-[9px] py-[7px] rounded-[7px] focus:outline-none focus:border-accent"
+              class="flex-1 bg-surface2 border text-ink font-body text-[13px] px-[9px] py-[7px] rounded-[7px] focus:outline-none focus:border-accent"
+              :class="dupe(card, 'object') ? 'border-miss' : 'border-line'"
               x-model="card.object"
               @change="save(card, 'object')"
               placeholder="Object"

@@ -48,6 +48,10 @@ body {
   overflow-x: hidden;
 }
 
+[x-cloak] {
+  display: none !important;
+}
+
 /* ---- View show/hide + fade ----
    Kept as CSS so the original tab-switch animation is byte-identical. */
 .view {
@@ -93,6 +97,13 @@ body {
   position: absolute;
   inset: 0;
   transform: rotateY(180deg);
+}
+
+/* ---- Drill suit-filter chips (toggled from drill.ts) ---- */
+.schip-on {
+  border-color: var(--color-accent) !important;
+  color: var(--color-ink) !important;
+  background: rgba(255, 176, 0, 0.12) !important;
 }
 
 /* ---- Guide list marker colors ---- */

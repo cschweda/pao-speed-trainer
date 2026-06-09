@@ -1,29 +1,54 @@
+---
+const SEL = 'font-mono text-[13px] bg-surface text-ink border border-line px-3.5 py-[9px] rounded-[9px] cursor-pointer disabled:opacity-40';
+const SCHIP =
+  'font-mono text-[13px] bg-surface text-muted border border-line px-3 py-[8px] rounded-[9px] cursor-pointer transition hover:border-accent disabled:opacity-40 disabled:cursor-default';
+const MINI_BTN =
+  'font-mono text-[11px] bg-surface text-muted border border-line px-2.5 py-[5px] rounded-[7px] cursor-pointer transition hover:border-accent hover:text-ink';
+---
+
 <section class="view" :class="{ active: $store.ui.view === 'drill' }" id="view-drill">
   <h2 class="font-disp text-[26px] mt-7 mb-1.5">Speed Drill</h2>
   <p class="text-muted text-[14px] mb-[22px] leading-[1.5]">
-    Recall the asked facet silently. <b>Space</b> to reveal. <b>1</b> instant · <b>2</b> slow · <b>3</b> missed. Auto-advances.
+    Recall what's asked silently. <b>Space</b> to reveal. <b>1</b> instant · <b>2</b> slow · <b>3</b> missed. <b>U</b> undo · <b>F</b> flag for re-encode. Auto-advances.
   </p>
 
   <div class="flex flex-wrap items-center gap-2.5 mb-[18px]">
-    <select
-      id="mode"
-      class="font-mono text-[13px] bg-surface text-ink border border-line px-3.5 py-[9px] rounded-[9px] cursor-pointer"
-    >
-      <option value="mixed">Mixed facet</option>
-      <option value="person">Person only</option>
-      <option value="action">Action only</option>
-      <option value="object">Object only</option>
+    <select id="mode" class={SEL}>
+      <optgroup label="Card → image">
+        <option value="mixed">Mixed facet</option>
+        <option value="person">Person only</option>
+        <option value="action">Action only</option>
+        <option value="object">Object only</option>
+      </optgroup>
+      <optgroup label="Image → card (reverse)">
+        <option value="rmixed">Mixed → card</option>
+        <option value="rperson">Person → card</option>
+        <option value="raction">Action → card</option>
+        <option value="robject">Object → card</option>
+      </optgroup>
+      <optgroup label="Integration">
+        <option value="fusion">Triplet fusion (3 cards → 1 scene)</option>
+      </optgroup>
     </select>
-    <select
-      id="suitFilter"
-      class="font-mono text-[13px] bg-surface text-ink border border-line px-3.5 py-[9px] rounded-[9px] cursor-pointer"
-    >
-      <option value="all">All suits</option>
-      <option value="H">♥ Hearts (musicians)</option>
-      <option value="S">♠ Spades (action heroes)</option>
-      <option value="D">♦ Diamonds (TV/movie)</option>
-      <option value="C">♣ Clubs (cartoons/toys)</option>
+
+    <div id="suitChips" class="flex gap-1.5 items-center" title="Suits in the pool — click to toggle">
+      <button class={SCHIP} data-schip="all">ALL</button>
+      <button class={SCHIP + ' text-cardred'} data-schip="H">♥</button>
+      <button class={SCHIP} data-schip="S">♠</button>
+      <button class={SCHIP + ' text-cardred'} data-schip="D">♦</button>
+      <button class={SCHIP} data-schip="C">♣</button>
+    </div>
+
+    <select id="sessTarget" class={SEL} title="Session auto-ends at this target">
+      <option value="">Open session</option>
+      <option value="r25">25 reps</option>
+      <option value="r50">50 reps</option>
+      <option value="r100">100 reps</option>
+      <option value="m5">5 min</option>
+      <option value="m10">10 min</option>
+      <option value="m15">15 min</option>
     </select>
+
     <button
       id="startBtn"
       class="font-mono text-[13px] bg-accent text-bg border border-accent font-semibold px-3.5 py-[9px] rounded-[9px] cursor-pointer hover:border-accent"
@@ -33,6 +58,13 @@
       style="display:none"
       class="font-mono text-[13px] bg-transparent text-ink border border-line px-3.5 py-[9px] rounded-[9px] cursor-pointer hover:border-accent"
     >End</button>
+
+    <span
+      id="customChip"
+      style="display:none"
+      class="items-center gap-2 font-mono text-[12px] text-accent2 bg-surface px-3 py-1.5 rounded-[99px] border border-[rgba(57,217,138,.4)]"
+    ><span id="customChipLabel">custom pool</span><button id="customClear" class="bg-transparent border-0 text-muted cursor-pointer text-[13px] p-0 hover:text-ink" title="Back to normal mode">✕</button></span>
+
     <span
       id="assignWarn"
       class="font-mono text-[12px] text-muted bg-surface px-3 py-1.5 rounded-[99px] border border-line"
@@ -46,10 +78,31 @@
       class="font-mono text-[15px] tracking-[3px] uppercase text-accent border border-line px-[18px] py-[7px] rounded-[999px] bg-surface"
     >PERSON?</div>
 
-    <div class="cardbox w-[200px] min-[561px]:w-[240px] max-w-[70vw]">
+    <div id="singleWrap" class="cardbox w-[200px] min-[561px]:w-[240px] max-w-[70vw]">
       <div class="flip" id="flip">
         <div class="face front" id="cardFront"></div>
         <div class="face back" id="cardBack"></div>
+      </div>
+    </div>
+
+    <div id="tripletRow" style="display:none" class="flex gap-3 justify-center max-w-full">
+      <div class="cardbox w-[104px] min-[561px]:w-[136px] max-w-[28vw]">
+        <div class="flip" id="tflip0">
+          <div class="face front" id="tfront0"></div>
+          <div class="face back" id="tback0"></div>
+        </div>
+      </div>
+      <div class="cardbox w-[104px] min-[561px]:w-[136px] max-w-[28vw]">
+        <div class="flip" id="tflip1">
+          <div class="face front" id="tfront1"></div>
+          <div class="face back" id="tback1"></div>
+        </div>
+      </div>
+      <div class="cardbox w-[104px] min-[561px]:w-[136px] max-w-[28vw]">
+        <div class="flip" id="tflip2">
+          <div class="face front" id="tfront2"></div>
+          <div class="face back" id="tback2"></div>
+        </div>
       </div>
     </div>
 
@@ -81,7 +134,14 @@
       ><b class="block text-[11px] text-dim mb-[3px]">3</b>MISSED</button>
     </div>
 
+    <div class="flex gap-2.5 justify-center">
+      <button id="flagBtn" class={MINI_BTN} title="Mark this card for rework in the Encode tab">⚑ flag card (F)</button>
+      <button id="undoBtn" style="display:none" class={MINI_BTN} title="Revert the last grade — removes the attempt and restores scheduling">↶ undo last (U)</button>
+    </div>
+
     <div id="latReadout" class="font-mono text-[13px] text-muted"></div>
     <div id="sessionbar" class="flex gap-[18px] flex-wrap font-mono text-[13px] text-muted mt-3.5 justify-center"></div>
   </div>
+
+  <div id="sessionSummary" style="display:none" class="bg-surface border border-line rounded-xl p-[18px] mt-2.5"></div>
 </section>
