@@ -3,6 +3,25 @@
 All notable changes to this project are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow [SemVer](https://semver.org/).
 
+## [2.1.0] — 2026-06-10
+
+### Changed
+
+- **Reveal shows the whole triplet** — the card back on single-card (card → image) reveals now
+  renders all three facets — PERSON / ACTION / OBJECT — with the asked facet accented, instead of
+  the asked facet alone. Reverse and fusion reveals are unchanged: reverse's answer is the card
+  face itself, and fusion's three backs each show exactly their slot in the scene.
+
+### Fixed
+
+- **Suit chips select what you click** — from the full deck, clicking a suit now drills *that*
+  suit. Previously the chips were pure toggles over an all-on default, so clicking ♦ *removed*
+  diamonds and dealt hearts/spades/clubs. From a subset, clicks still add/remove suits so
+  multi-suit blends stay reachable; deselecting the last suit returns to the full deck.
+- **Filter changes apply to the card on screen** — if the prompt no longer matches the suit
+  filter (e.g. a club showing when you just picked diamonds), it is re-dealt immediately instead
+  of lingering until graded.
+
 ## [2.0.0] — 2026-06-09
 
 The trainer grows from a single-card reflex drill into the full PAO-for-cards pipeline:

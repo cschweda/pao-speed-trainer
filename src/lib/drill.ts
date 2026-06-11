@@ -8,7 +8,7 @@
      fusion — three cards shown, fuse P+A+O into one scene (no Leitner; global pace target) */
 import { CARDS, LEITNER, KEY, DB, saveLeitner, toggleFlag, type Dir, type LeitnerEntry } from './db';
 import { quantile } from './stats';
-import { cardSVG, cardBackSVG, esc } from './svg';
+import { cardSVG, cardBackSVG, cardPAOBackSVG, esc } from './svg';
 import { SUITS, SUIT_META, FACETS, FACET_LABEL, allCards, type Card, type Facet, type Suit } from './data';
 import { showToast } from './toast';
 
@@ -356,7 +356,7 @@ function reveal(): void {
       revealPanel.innerHTML = `<div class="font-disp text-[30px] leading-[1.1]" style="color:${col}">${card.rank}${SUIT_META[card.suit].sym}</div><div class="font-mono text-[12px] text-muted mt-1.5">${esc(ctx)}</div>`;
     } else {
       const ans = rec[c.facet!];
-      cardBack.innerHTML = cardBackSVG(esc(ans), FACET_LABEL[c.facet!]);
+      cardBack.innerHTML = cardPAOBackSVG(rec.person, rec.action, rec.object, c.facet!);
       revealPanel.innerHTML = `<div class="font-disp text-[30px] leading-[1.1]">${esc(ans)}</div><div class="font-mono text-[12px] text-muted mt-1.5">${esc(ctx)}</div>`;
     }
     flip.classList.add('flipped');
@@ -607,20 +607,33 @@ function setSuits(spec: string): void {
   }
   renderSuitChips();
 }
+/** Pure suit-chip transition: given the active set and the clicked chip, return the next active set.
+    From the full deck a suit click SOLOS that suit (click ♦ → drill diamonds); within a subset it
+    toggles membership so multi-suit blends stay reachable; emptying the set restores the full deck. */
+export function nextSuitState(active: ReadonlySet<Suit>, clicked: string): Set<Suit> {
+  if (clicked === 'all') return new Set(SUITS);
+  const s = clicked as Suit;
+  if (!SUITS.includes(s)) return new Set(active);
+  if (active.size === SUITS.length) return new Set([s]);
+  const next = new Set(active);
+  if (next.has(s)) next.delete(s);
+  else next.add(s);
+  return next.size ? next : new Set(SUITS);
+}
+
 function toggleSuit(v: string): void {
-  if (v === 'all') {
-    activeSuits = new Set(SUITS);
-  } else {
-    const s = v as Suit;
-    if (activeSuits.has(s)) {
-      if (activeSuits.size === 1) {
-        showToast('Keep at least one suit selected');
-        return;
-      }
-      activeSuits.delete(s);
-    } else activeSuits.add(s);
-  }
+  const before = activeSuits;
+  activeSuits = nextSuitState(activeSuits, v);
+  if (v !== 'all' && before.size === 1 && activeSuits.size === SUITS.length) showToast('All suits back in the pool');
   renderSuitChips();
+  syncRepToFilter();
+}
+
+/* if the prompt on screen was dealt under an older filter, replace it with one that matches */
+function syncRepToFilter(): void {
+  if (!running || !cur || customPool) return;
+  if (cur.cards.every((c) => activeSuits.has(c.suit))) return;
+  nextRep();
 }
 
 /* ---- custom pool (e.g. "drill my slowest" from the dashboard) ---- */

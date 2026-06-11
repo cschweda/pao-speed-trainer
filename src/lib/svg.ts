@@ -1,4 +1,4 @@
-import { SUIT_META, type Suit } from './data';
+import { SUIT_META, FACETS, FACET_LABEL, type Suit, type Facet } from './data';
 
 // Minimal, sub-300ms-legible card faces. Ported from the original; the only change
 // is CSS variable names, updated to the Tailwind v4 @theme-emitted equivalents
@@ -36,4 +36,22 @@ export function cardBackSVG(text: string, sub: string): string {
 
 export function esc(s: string): string {
   return (s || '').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+}
+
+// Reveal back for single-card drills: the full P·A·O triplet, asked facet accented.
+export function cardPAOBackSVG(person: string, action: string, object: string, asked: Facet): string {
+  const val: Record<Facet, string> = { person, action, object };
+  const rows = FACETS.map((f) => {
+    const hit = f === asked;
+    return `<div data-facet="${f}">
+      <div style="font-family:var(--font-mono);font-size:10px;letter-spacing:2px;font-weight:400;color:${hit ? '#ffb000' : '#6b7080'}">${FACET_LABEL[f]}</div>
+      <div style="font-family:var(--font-disp);font-size:${hit ? 23 : 16}px;line-height:1.12;margin-top:2px;color:${hit ? '#ffb000' : '#c8ccd6'}">${esc(val[f]) || '—'}</div>
+    </div>`;
+  }).join('');
+  return `<svg class="card-svg" viewBox="0 0 240 336" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${esc(person)} · ${esc(action)} · ${esc(object)}">
+    <rect x="3" y="3" width="234" height="330" rx="18" fill="#181a21" stroke="#2c3040" stroke-width="2"/>
+    <foreignObject x="16" y="18" width="208" height="300">
+      <div xmlns="http://www.w3.org/1999/xhtml" style="height:100%;display:flex;flex-direction:column;justify-content:center;gap:16px;text-align:center">${rows}</div>
+    </foreignObject>
+  </svg>`;
 }

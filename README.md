@@ -17,8 +17,10 @@ The deck is split by suit into four categories — **Hearts** (musicians), **Spa
   - *Triplet fusion*: three cards, one scene — person of the 1st + action of the 2nd + object of the
     3rd. The actual PAO operation used on a real deck.
 
-  Recall silently, press **Space** to reveal, grade **1** (instant) · **2** (got it, slow) · **3**
-  (missed). **U** undoes a fat-fingered grade; **F** flags a card for re-encoding. Latency is
+  Recall silently, press **Space** to reveal — the back shows the card's full P·A·O with the asked
+  facet highlighted — and grade **1** (instant) · **2** (got it, slow) · **3** (missed). Suit chips
+  filter the pool: click a suit to drill just that suit, click more to blend, **ALL** for the full
+  deck. **U** undoes a fat-fingered grade; **F** flags a card for re-encoding. Latency is
   measured from the prompt's paint to your reveal keypress only, and an INSTANT that lands over your
   own p75-derived target is *scheduled* as slow — the clock keeps the grading honest.
 
