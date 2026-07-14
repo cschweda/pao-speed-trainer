@@ -3,6 +3,23 @@
 All notable changes to this project are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow [SemVer](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- **The hub exit** — a gold `METAINCOGNITA` pill at the far left of the header, linking to
+  [metaincognita.com](https://metaincognita.com), the floor every Metaincognita game hangs off.
+  The trainer was reachable from the hub but never linked back, so the only way out was the
+  browser's back button. It is a real link, opens in the same tab, is never hidden or gated, and
+  never confirms — it destroys nothing (your encodings and schedule live in IndexedDB). Suite
+  chrome, so it stays gold rather than taking the trainer's own accent.
+
+### Changed
+
+- **The `PAO·SPEED` wordmark hides below 640px** — the header had to give something up to fit the
+  hub exit, and on a phone the exit is the one that has to stay. The nav and the exit both keep
+  their full size; nothing is clipped.
+
 ## [2.1.0] — 2026-06-10
 
 ### Changed

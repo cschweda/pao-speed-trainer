@@ -1,0 +1,43 @@
+---
+/* The suite's exit door: back to the floor at metaincognita.com, where every
+   Metaincognita game lives. This is suite chrome, not app chrome — it is the
+   same gold pill in all nine apps (guidelines §5), so it deliberately does NOT
+   take this trainer's own #ffb000 accent token.
+
+   Four things here are load-bearing, not stylistic:
+     - A real <a href>, absolute — it leaves the app entirely.
+     - No `target` — this is an exit, not a side trip. A new tab would leave the
+       trainer running behind it.
+     - Never hidden, never confirmed. It destroys nothing (encodings, schedule
+       and deck runs live in IndexedDB), and the whole point is that a player
+       can always get out.
+     - The aria-label must CONTAIN the visible wordmark verbatim, or it fails
+       WCAG 2.5.3 Label in Name — "Meta Incognita" would break on the space.
+       The icon is decorative and stays aria-hidden.
+
+   The glyph is lucide's `log-out`, inlined: Astro has no icon runtime, and the
+   suite's other apps get the same path from @iconify-json/lucide. */
+---
+
+<a
+  href="https://metaincognita.com"
+  aria-label="METAINCOGNITA — exit the simulator, back to all the games"
+  class="flex shrink-0 items-center gap-1.5 rounded-lg border border-amber-500/30 bg-amber-500/5 px-2.5 py-1.5 text-amber-400 transition-colors hover:border-amber-400/60 hover:bg-amber-500/10 hover:text-amber-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/70"
+>
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    class="h-4 w-4 shrink-0"
+    aria-hidden="true"
+  >
+    <path
+      fill="none"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      d="m16 17l5-5l-5-5m5 5H9m0 9H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"
+    />
+  </svg>
+  <span class="text-[11px] font-semibold tracking-[0.12em]">METAINCOGNITA</span>
+</a>

@@ -80,7 +80,8 @@ npm run preview  # preview the production build locally
 ```
 src/
   pages/index.astro      # page shell — composes the header, five views, and toast
-  components/            # Header, DrillView, DeckView, BuilderView, DashView, GuideView, Toast
+  components/            # Header, AppHubLink (the metaincognita.com exit), DrillView, DeckView,
+                         # BuilderView, DashView, GuideView, Toast
   lib/                   # data, db (IndexedDB), svg, stats, drill engine, deck-run engine,
                          # magic stacks, dashboard compute, backup/restore
   entrypoint.ts          # Alpine stores/components, boot sequence, wiring

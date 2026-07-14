@@ -1,8 +1,14 @@
+---
+import AppHubLink from './AppHubLink.astro';
+---
+
 <header
   class="sticky top-0 z-50 flex items-center gap-3.5 px-4 py-[18px] border-b border-line backdrop-blur-[12px]"
   style="background:rgba(14,15,19,.82)"
 >
-  <div class="font-disp text-[18px] tracking-[.5px]">PAO<span class="text-accent">·</span>SPEED</div>
+  <AppHubLink />
+  <span class="hidden h-5 w-px shrink-0 bg-line sm:block" aria-hidden="true"></span>
+  <div class="hidden font-disp text-[18px] tracking-[.5px] sm:block">PAO<span class="text-accent">·</span>SPEED</div>
   <nav class="ml-auto flex flex-wrap gap-1">
     <button
       @click="$store.ui.view='drill'"
